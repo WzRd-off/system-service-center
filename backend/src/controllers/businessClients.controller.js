@@ -1,0 +1,38 @@
+import { businessClientsService } from '../services/businessClients.service.js';
+import { equipmentService } from '../services/equipment.service.js';
+import { requestsService } from '../services/requests.service.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+
+export const businessClientsController = {
+  getProfile: asyncHandler(async (req, res) => {
+    const profile = await businessClientsService.getProfileByUserId(req.user.id);
+    res.json(profile);
+  }),
+
+  getDevices: asyncHandler(async (req, res) => {
+    const profile = await businessClientsService.getProfileByUserId(req.user.id);
+    const devices = await equipmentService.listByBusinessClient(profile.id);
+    res.json(devices);
+  }),
+
+  getRequests: asyncHandler(async (req, res) => {
+    const profile = await businessClientsService.getProfileByUserId(req.user.id);
+    const requests = await requestsService.list({ businessClientId: profile.id });
+    res.json(requests);
+  }),
+
+  getMaintenancePlans: asyncHandler(async (req, res) => {
+    const profile = await businessClientsService.getProfileByUserId(req.user.id);
+    const plans = await businessClientsService.listMaintenancePlans(profile.id);
+    res.json(plans);
+  }),
+
+  createMaintenancePlan: asyncHandler(async (req, res) => {
+    const profile = await businessClientsService.getProfileByUserId(req.user.id);
+    const plan = await businessClientsService.createMaintenancePlan({
+      ...req.body,
+      businessClientId: profile.id
+    });
+    res.status(201).json(plan);
+  })
+};
