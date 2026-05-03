@@ -1,11 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout.jsx';
+import { Spinner } from '../../components/common/Spinner.jsx';
 import { RequestForm } from '../../components/requests/RequestForm.jsx';
+import { useFetch } from '../../hooks/useFetch.js';
 import { requestsApi } from '../../api/requests.api.js';
+import { businessClientsApi } from '../../api/businessClients.api.js';
 import { ROUTES } from '../../constants/routes.js';
 
 export function BusinessNewRequestPage() {
   const navigate = useNavigate();
+  const devices = useFetch(() => businessClientsApi.getDevices());
 
   const handleSubmit = async (data) => {
     await requestsApi.create(data);
@@ -15,7 +19,15 @@ export function BusinessNewRequestPage() {
   return (
     <Layout>
       <h2>Нова заявка</h2>
-      <RequestForm onSubmit={handleSubmit} businessFields />
+      {devices.loading ? (
+        <Spinner />
+      ) : (
+        <RequestForm
+          onSubmit={handleSubmit}
+          businessFields
+          devices={devices.data || []}
+        />
+      )}
     </Layout>
   );
 }

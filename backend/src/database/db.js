@@ -1,8 +1,17 @@
-import pg from 'pg';
+import { Pool } from 'pg';
 import { env } from '../config/env.js';
 
-export const db = new pg.Pool(env.db);
+export const pool = new Pool(env.db);
 
-db.on('error', (err) => {
+pool.on('error', (err) => {
   console.error('Unexpected DB pool error:', err);
 });
+
+pool.on('connect', () => {
+    console.log('Успішне підключення до бази даних')
+})
+
+export const db = {
+    query: (text, params) => pool.query(text, params),
+    connect: () => pool.connect()
+}

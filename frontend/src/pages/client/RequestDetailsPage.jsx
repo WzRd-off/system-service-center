@@ -22,12 +22,52 @@ export function ClientRequestDetailsPage() {
   if (request.loading) return <Layout><Spinner /></Layout>;
   if (!request.data) return <Layout><p>Заявку не знайдено</p></Layout>;
 
+  const r = request.data;
+
   return (
     <Layout>
-      <h2>Заявка № {request.data.request_number}</h2>
-      <RequestStatus status={request.data.status} />
-      <p>{request.data.description}</p>
-      <small>Створено: {formatDateTime(request.data.created_at)}</small>
+      <h2>Заявка № {r.request_number}</h2>
+      <RequestStatus status={r.status} />
+
+      <section>
+        <h3>Деталі заявки</h3>
+        <dl>
+          <dt>Створено</dt><dd>{formatDateTime(r.created_at)}</dd>
+          <dt>Тип техніки</dt><dd>{r.type || '—'}</dd>
+          <dt>Виробник / Модель</dt>
+          <dd>{[r.manufacturer, r.model].filter(Boolean).join(' ') || '—'}</dd>
+          <dt>Серійний номер</dt><dd>{r.serial_number || '—'}</dd>
+          <dt>Опис проблеми</dt><dd>{r.description}</dd>
+          <dt>Призначений майстер</dt>
+          <dd>{r.technician_name || 'не призначено'}</dd>
+        </dl>
+      </section>
+
+      {r.work_report && (
+        <section>
+          <h3>Звіт про виконані роботи</h3>
+          <dl>
+            {r.work_report.diagnostic_result && (
+              <>
+                <dt>Результат діагностики</dt>
+                <dd>{r.work_report.diagnostic_result}</dd>
+              </>
+            )}
+            {r.work_report.work_description && (
+              <>
+                <dt>Виконані роботи</dt>
+                <dd>{r.work_report.work_description}</dd>
+              </>
+            )}
+            {r.work_report.used_parts && (
+              <>
+                <dt>Використані запчастини</dt>
+                <dd>{r.work_report.used_parts}</dd>
+              </>
+            )}
+          </dl>
+        </section>
+      )}
 
       <section>
         <h3>Коментарі</h3>

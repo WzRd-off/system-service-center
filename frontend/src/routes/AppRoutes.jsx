@@ -29,6 +29,7 @@ import { BusinessNewRequestPage } from '../pages/business/NewRequestPage.jsx';
 import { ServiceHistoryPage } from '../pages/business/ServiceHistoryPage.jsx';
 import { MaintenancePlansPage } from '../pages/business/MaintenancePlansPage.jsx';
 
+import { ProfilePage } from '../pages/ProfilePage.jsx';
 import { NotFoundPage } from '../pages/NotFoundPage.jsx';
 
 export function AppRoutes() {
@@ -37,6 +38,8 @@ export function AppRoutes() {
       <Route path={ROUTES.HOME} element={<Navigate to={ROUTES.LOGIN} replace />} />
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
+
+      <Route path={ROUTES.PROFILE} element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
       <Route path={ROUTES.CLIENT.DASHBOARD} element={<ProtectedRoute roles={[ROLES.CLIENT]}><ClientDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.CLIENT.NEW_REQUEST} element={<ProtectedRoute roles={[ROLES.CLIENT]}><NewRequestPage /></ProtectedRoute>} />
@@ -59,6 +62,7 @@ export function AppRoutes() {
       <Route path={ROUTES.BUSINESS.DEVICES} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><CompanyDevicesPage /></ProtectedRoute>} />
       <Route path={ROUTES.BUSINESS.NEW_REQUEST} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><BusinessNewRequestPage /></ProtectedRoute>} />
       <Route path={ROUTES.BUSINESS.HISTORY} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><ServiceHistoryPage /></ProtectedRoute>} />
+      <Route path={ROUTES.BUSINESS.REQUEST_DETAILS} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><ClientRequestDetailsPage /></ProtectedRoute>} />
       <Route path={ROUTES.BUSINESS.MAINTENANCE} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><MaintenancePlansPage /></ProtectedRoute>} />
 
       <Route path="*" element={<NotFoundPage />} />

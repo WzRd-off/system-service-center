@@ -13,17 +13,28 @@ import { requestsApi } from '../../api/requests.api.js';
 import { mastersApi } from '../../api/masters.api.js';
 import { commentsApi } from '../../api/comments.api.js';
 import { STATUS_LABELS } from '../../constants/statuses.js';
+import { formatDateTime } from '../../utils/formatters.js';
 
-const statusOptions = Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }));
+const statusOptions = Object.entries(STATUS_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 export function MasterRequestDetailsPage() {
   const { id } = useParams();
   const request = useFetch(() => requestsApi.getById(id), [id]);
   const comments = useFetch(() => commentsApi.listByRequest(id), [id]);
-  const [report, setReport] = useState({ diagnosticResult: '', workDescription: '', usedParts: '' });
+  const [report, setReport] = useState({
+    diagnosticResult: '',
+    workDescription: '',
+    usedParts: '',
+  });
+  const [notifying, setNotifying] = useState(false);
 
   if (request.loading) return <Layout><Spinner /></Layout>;
   if (!request.data) return <Layout><p>Заявку не знайдено</p></Layout>;
+
+  const r = request.data;
 
   const updateStatus = async (status) => {
     await mastersApi.updateRequestStatus(id, status);
@@ -34,6 +45,7 @@ export function MasterRequestDetailsPage() {
     e.preventDefault();
     await mastersApi.addWorkReport({ ...report, requestId: Number(id) });
     setReport({ diagnosticResult: '', workDescription: '', usedParts: '' });
+    request.reload();
   };
 
   const sendComment = async (text) => {
@@ -41,27 +53,77 @@ export function MasterRequestDetailsPage() {
     comments.reload();
   };
 
+  const notifyComplete = async () => {
+    setNotifying(true);
+    try {
+      await mastersApi.notifyManagerCompleted(id);
+      await mastersApi.updateRequestStatus(id, 'completed');
+      request.reload();
+    } finally {
+      setNotifying(false);
+    }
+  };
+
   return (
     <Layout>
-      <h2>Заявка № {request.data.request_number}</h2>
-      <RequestStatus status={request.data.status} />
-      <p>{request.data.description}</p>
+      <h2>Заявка № {r.request_number}</h2>
+      <RequestStatus status={r.status} />
+
+      <section className="request-details">
+        <h3>Інформація про техніку та заявку</h3>
+        <dl>
+          <dt>Створено</dt><dd>{formatDateTime(r.created_at)}</dd>
+          <dt>Тип техніки</dt><dd>{r.type || '—'}</dd>
+          <dt>Виробник</dt><dd>{r.manufacturer || '—'}</dd>
+          <dt>Модель</dt><dd>{r.model || '—'}</dd>
+          <dt>Серійний номер</dt><dd>{r.serial_number || '—'}</dd>
+          {r.address && (<><dt>Адреса</dt><dd>{r.address}</dd></>)}
+          <dt>Контактна особа</dt>
+          <dd>{r.client_name || r.contact_person || '—'}</dd>
+          <dt>Телефон</dt><dd>{r.contact_phone || '—'}</dd>
+          <dt>Опис проблеми</dt><dd>{r.description}</dd>
+          {r.comment && (<><dt>Коментар клієнта</dt><dd>{r.comment}</dd></>)}
+        </dl>
+      </section>
 
       <section>
         <h3>Статус виконання</h3>
-        <Select options={statusOptions} value={request.data.status} onChange={(e) => updateStatus(e.target.value)} />
+        <Select
+          options={statusOptions}
+          value={r.status}
+          onChange={(e) => updateStatus(e.target.value)}
+        />
       </section>
 
       <section>
         <h3>Звіт про виконані роботи</h3>
         <form onSubmit={submitReport}>
-          <Input label="Результат діагностики" value={report.diagnosticResult}
-            onChange={(e) => setReport({ ...report, diagnosticResult: e.target.value })} />
-          <Input label="Виконані роботи" value={report.workDescription}
-            onChange={(e) => setReport({ ...report, workDescription: e.target.value })} />
-          <Input label="Використані запчастини" value={report.usedParts}
-            onChange={(e) => setReport({ ...report, usedParts: e.target.value })} />
-          <Button type="submit">Зберегти звіт</Button>
+          <Input
+            label="Результат діагностики"
+            value={report.diagnosticResult}
+            onChange={(e) => setReport({ ...report, diagnosticResult: e.target.value })}
+          />
+          <Input
+            label="Виконані роботи"
+            value={report.workDescription}
+            onChange={(e) => setReport({ ...report, workDescription: e.target.value })}
+          />
+          <Input
+            label="Використані запчастини"
+            value={report.usedParts}
+            onChange={(e) => setReport({ ...report, usedParts: e.target.value })}
+          />
+          <div className="form-actions">
+            <Button type="submit">Зберегти звіт</Button>
+            <Button
+              type="button"
+              variant="outline"
+              loading={notifying}
+              onClick={notifyComplete}
+            >
+              Повідомити про завершення робіт
+            </Button>
+          </div>
         </form>
       </section>
 

@@ -1,10 +1,11 @@
 import { formatDateTime } from '../../utils/formatters.js';
 
-export function CommentList({ comments = [] }) {
-  if (!comments.length) return <p>Коментарів поки немає</p>;
+export function CommentList({ comments }) {
+  const items = Array.isArray(comments) ? comments : [];
+  if (!items.length) return <p>Коментарів поки немає</p>;
   return (
     <ul className="comment-list">
-      {comments.map((c) => (
+      {items.map((c) => (
         <li key={c.id} className="comment">
           <header>
             <strong>{c.author_role}</strong>

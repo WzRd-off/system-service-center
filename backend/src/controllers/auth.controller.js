@@ -36,5 +36,22 @@ export const authController = {
     const user = await authService.findById(req.user.id);
     if (!user) throw ApiError.unauthorized();
     res.json(user);
+  }),
+
+  changePassword: asyncHandler(async (req, res) => {
+    requireFields(req.body, ['currentPassword', 'newPassword']);
+    const { currentPassword, newPassword } = req.body;
+    if (!isStrongPassword(newPassword)) {
+      throw ApiError.badRequest('Новий пароль має містити щонайменше 6 символів');
+    }
+    if (currentPassword === newPassword) {
+      throw ApiError.badRequest('Новий пароль має відрізнятись від поточного');
+    }
+    const result = await authService.changePassword({
+      userId: req.user.id,
+      currentPassword,
+      newPassword,
+    });
+    res.json(result);
   })
 };

@@ -2,6 +2,7 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   REGISTER: '/register',
+  PROFILE: '/profile',
 
   CLIENT: {
     DASHBOARD: '/client',
@@ -31,6 +32,7 @@ export const ROUTES = {
     DEVICES: '/business/devices',
     NEW_REQUEST: '/business/new-request',
     HISTORY: '/business/history',
+    REQUEST_DETAILS: '/business/history/:id',
     MAINTENANCE: '/business/maintenance'
   }
 };

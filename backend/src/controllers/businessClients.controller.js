@@ -9,6 +9,11 @@ export const businessClientsController = {
     res.json(profile);
   }),
 
+  updateProfile: asyncHandler(async (req, res) => {
+    const profile = await businessClientsService.updateProfile(req.user.id, req.body);
+    res.json(profile);
+  }),
+
   getDevices: asyncHandler(async (req, res) => {
     const profile = await businessClientsService.getProfileByUserId(req.user.id);
     const devices = await equipmentService.listByBusinessClient(profile.id);
@@ -34,5 +39,15 @@ export const businessClientsController = {
       businessClientId: profile.id
     });
     res.status(201).json(plan);
+  }),
+
+  listAll: asyncHandler(async (req, res) => {
+    const list = await businessClientsService.listAll();
+    res.json(list);
+  }),
+
+  getDevicesById: asyncHandler(async (req, res) => {
+    const devices = await businessClientsService.listDevices(Number(req.params.id));
+    res.json(devices);
   })
 };
