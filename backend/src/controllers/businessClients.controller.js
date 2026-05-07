@@ -15,14 +15,12 @@ export const businessClientsController = {
   }),
 
   getDevices: asyncHandler(async (req, res) => {
-    const profile = await businessClientsService.getProfileByUserId(req.user.id);
-    const devices = await equipmentService.listByBusinessClient(profile.id);
+    const devices = await equipmentService.listByUser(req.user.id);
     res.json(devices);
   }),
 
   getRequests: asyncHandler(async (req, res) => {
-    const profile = await businessClientsService.getProfileByUserId(req.user.id);
-    const requests = await requestsService.list({ businessClientId: profile.id });
+    const requests = await requestsService.list({ userId: req.user.id });
     res.json(requests);
   }),
 
@@ -36,7 +34,7 @@ export const businessClientsController = {
     const profile = await businessClientsService.getProfileByUserId(req.user.id);
     const plan = await businessClientsService.createMaintenancePlan({
       ...req.body,
-      businessClientId: profile.id
+      profileId: profile.id
     });
     res.status(201).json(plan);
   }),

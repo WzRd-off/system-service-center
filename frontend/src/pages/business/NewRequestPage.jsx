@@ -10,6 +10,7 @@ import { ROUTES } from '../../constants/routes.js';
 export function BusinessNewRequestPage() {
   const navigate = useNavigate();
   const devices = useFetch(() => businessClientsApi.getDevices());
+  const profile = useFetch(() => businessClientsApi.getProfile());
 
   const handleSubmit = async (data) => {
     await requestsApi.create(data);
@@ -19,13 +20,14 @@ export function BusinessNewRequestPage() {
   return (
     <Layout>
       <h2>Нова заявка</h2>
-      {devices.loading ? (
+      {devices.loading || profile.loading ? (
         <Spinner />
       ) : (
         <RequestForm
           onSubmit={handleSubmit}
           businessFields
           devices={devices.data || []}
+          businessContactPerson={profile.data?.contact_person}
         />
       )}
     </Layout>

@@ -17,6 +17,7 @@ export const ROUTES = {
     REQUESTS: '/manager/requests',
     REQUEST_DETAILS: '/manager/requests/:id',
     BUSINESS_CLIENTS: '/manager/business-clients',
+    MASTERS: '/manager/masters',
     ANALYTICS: '/manager/analytics'
   },
 

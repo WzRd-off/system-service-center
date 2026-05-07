@@ -34,7 +34,12 @@ const serviceTypeOptions = [
   { value: 'preventive', label: 'Профілактичне' },
 ];
 
-export function RequestForm({ onSubmit, businessFields = false, devices = [] }) {
+export function RequestForm({
+  onSubmit,
+  businessFields = false,
+  devices = [],
+  businessContactPerson,
+}) {
   const [form, setForm] = useState(() => ({
     ...INITIAL,
     ...(businessFields ? BUSINESS_INITIAL : {}),
@@ -102,17 +107,22 @@ export function RequestForm({ onSubmit, businessFields = false, devices = [] }) 
 
       {businessFields && (
         <>
-          <Input
-            label="Контактна особа"
-            name="contactPerson"
-            value={form.contactPerson}
-            onChange={change}
-          />
+          {businessContactPerson !== undefined && (
+            <Input
+              label="Контактна особа"
+              name="contactPerson"
+              value={businessContactPerson || '—'}
+              onChange={change}
+              disabled
+              hint="Береться з профілю компанії"
+            />
+          )}
           <Input
             label="Адреса об'єкта"
             name="address"
             value={form.address}
             onChange={change}
+            required
           />
           <Select
             label="Тип обслуговування"

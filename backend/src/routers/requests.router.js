@@ -9,7 +9,7 @@ router.use(authMiddleware);
 router.post('/', requestsController.create);
 router.get('/', requestsController.list);
 router.get('/:id', requestsController.getById);
-router.patch('/:id/status', requestsController.updateStatus);
+router.patch('/:id/status', managerMiddleware,requestsController.updateStatus);
 router.patch('/:id/assign', managerMiddleware, requestsController.assignTechnician);
 
 export default router;

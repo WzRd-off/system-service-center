@@ -25,7 +25,7 @@ class NotificationsService {
        WHERE id = $1 AND user_id = $2 RETURNING *`,
       [id, userId]
     );
-    if (!rows[0]) throw ApiError.notFound('Сповіщення не знайдено');
+    if (!rows[0]) throw ApiError.notFound('Notification not found');
     return rows[0];
   }
 
@@ -34,7 +34,8 @@ class NotificationsService {
       'DELETE FROM notifications WHERE id = $1 AND user_id = $2',
       [id, userId]
     );
-    if (!rowCount) throw ApiError.notFound('Сповіщення не знайдено');
+    if (!rowCount) throw ApiError.notFound('Notification not found');
+    return true;
   }
 }
 

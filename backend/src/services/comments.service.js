@@ -26,7 +26,7 @@ class CommentsService {
        RETURNING *`,
       [text, id, authorId]
     );
-    if (!rows[0]) throw ApiError.notFound('Коментар не знайдено або немає прав');
+    if (!rows[0]) throw ApiError.notFound('Comment not found');
     return rows[0];
   }
 }

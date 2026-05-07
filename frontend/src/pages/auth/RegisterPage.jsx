@@ -44,9 +44,14 @@ export function RegisterPage() {
       return;
     }
     if (isBusiness && !form.edrpou.trim()) {
-      setError('Вкажіть ЕДРПОУ');
+      setError('Вкажіть ЄДРПОУ');
       return;
     }
+    if (isBusiness && !form.contact_person.trim()) {
+      setError('Вкажіть контактну особу');
+      return;
+    }
+    
     setSubmitting(true);
     try {
       const payload = isBusiness
@@ -69,30 +74,13 @@ export function RegisterPage() {
         <Input label="Пошта" name="email" type="email" value={form.email} onChange={change} required />
         <Input label="Телефон" name="phone" type="tel" value={form.phone} onChange={change} />
         <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required />
-        <Input label="Адреса" name="address" value={form.address}onChange={change} />
+        <Input label="Адреса" name="address" value={form.address} onChange={change} />
+        
         {isBusiness ? (
           <>
-            <Input
-              label="Назва компанії"
-              name="companyName"
-              value={form.companyName}
-              onChange={change}
-              required
-            />
-            <Input
-              label="ЄДРПОУ"
-              name="edrpou"
-              value={form.edrpou}
-              onChange={change}
-              required
-            />
-            <Input
-              label="Контактна особа"
-              name="contact_person"
-              value={form.contact_person}
-              onChange={change}
-              required
-            />
+            <Input label="Назва компанії" name="companyName" value={form.companyName} onChange={change} required />
+            <Input label="ЄДРПОУ" name="edrpou" value={form.edrpou} onChange={change} required />
+            <Input label="Контактна особа" name="contact_person" value={form.contact_person} onChange={change} required />
           </>
         ) : (
           <>            

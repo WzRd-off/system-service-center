@@ -16,6 +16,7 @@ import { ManagerDashboard } from '../pages/manager/ManagerDashboard.jsx';
 import { AllRequestsPage } from '../pages/manager/AllRequestsPage.jsx';
 import { ManagerRequestDetailsPage } from '../pages/manager/RequestDetailsPage.jsx';
 import { BusinessClientsPage } from '../pages/manager/BusinessClientsPage.jsx';
+import { CreateMasterPage } from '../pages/manager/CreateMasterPage.jsx';
 import { AnalyticsPage } from '../pages/manager/AnalyticsPage.jsx';
 
 import { MasterDashboard } from '../pages/master/MasterDashboard.jsx';
@@ -51,6 +52,7 @@ export function AppRoutes() {
       <Route path={ROUTES.MANAGER.REQUESTS} element={<ProtectedRoute roles={[ROLES.MANAGER]}><AllRequestsPage /></ProtectedRoute>} />
       <Route path={ROUTES.MANAGER.REQUEST_DETAILS} element={<ProtectedRoute roles={[ROLES.MANAGER]}><ManagerRequestDetailsPage /></ProtectedRoute>} />
       <Route path={ROUTES.MANAGER.BUSINESS_CLIENTS} element={<ProtectedRoute roles={[ROLES.MANAGER]}><BusinessClientsPage /></ProtectedRoute>} />
+      <Route path={ROUTES.MANAGER.MASTERS} element={<ProtectedRoute roles={[ROLES.MANAGER]}><CreateMasterPage /></ProtectedRoute>} />
       <Route path={ROUTES.MANAGER.ANALYTICS} element={<ProtectedRoute roles={[ROLES.MANAGER]}><AnalyticsPage /></ProtectedRoute>} />
 
       <Route path={ROUTES.MASTER.DASHBOARD} element={<ProtectedRoute roles={[ROLES.TECHNICIAN]}><MasterDashboard /></ProtectedRoute>} />

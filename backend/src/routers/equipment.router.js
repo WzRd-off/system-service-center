@@ -9,6 +9,6 @@ router.use(authMiddleware);
 router.post('/', equipmentController.create);
 router.get('/:id', equipmentController.getById);
 router.get('/:id/history', equipmentController.getHistory);
-router.get('/client/:clientId', equipmentController.listByClient);
+router.get('/user/:userId', equipmentController.listByUser);
 
 export default router;

@@ -5,12 +5,15 @@ import { requireFields } from '../utils/validation.js';
 export const equipmentController = {
   create: asyncHandler(async (req, res) => {
     requireFields(req.body, ['type']);
-    const device = await equipmentService.create(req.body);
+    const device = await equipmentService.create({
+      ...req.body,
+      userId: req.body.userId || req.user.id,
+    });
     res.status(201).json(device);
   }),
 
-  listByClient: asyncHandler(async (req, res) => {
-    const devices = await equipmentService.listByClient(Number(req.params.clientId));
+  listByUser: asyncHandler(async (req, res) => {
+    const devices = await equipmentService.listByUser(req.user.id);
     res.json(devices);
   }),
 

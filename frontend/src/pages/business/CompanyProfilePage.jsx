@@ -6,6 +6,7 @@ import { Input } from '../../components/common/Input.jsx';
 import { Button } from '../../components/common/Button.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
 import { businessClientsApi } from '../../api/businessClients.api.js';
+import { usersApi } from '../../api/users.api.js';
 
 const FIELDS = [
   { name: 'company_name', label: 'Назва компанії', required: true },
@@ -37,7 +38,16 @@ export function CompanyProfilePage() {
     e.preventDefault();
     setSaving(true);
     try {
-      await businessClientsApi.updateProfile(form);
+      await businessClientsApi.updateProfile({
+        company_name: form.company_name,
+        edrpou: form.edrpou,
+        contact_person: form.contact_person,
+        address: form.address,
+      });
+      await usersApi.updateProfile({
+        phone: form.phone,
+        email: form.email,
+      });
       setSavedAt(Date.now());
       setEditing(false);
       reload();
@@ -53,22 +63,35 @@ export function CompanyProfilePage() {
 
   return (
     <Layout>
-      <h2>Профіль компанії</h2>
       {!editing ? (
-        <>
-          <dl>
+        <section className="company-profile">
+          <div className="company-profile__header">
+            <div>
+              <h2 className="company-profile__title">Профіль компанії</h2>
+              {savedAt && <small className="hint">Збережено</small>}
+            </div>
+            <Button onClick={() => setEditing(true)}>Редагувати</Button>
+          </div>
+
+          <dl className="company-profile__dl">
             {FIELDS.map((f) => (
-              <div key={f.name}>
+              <div className="company-profile__row" key={f.name}>
                 <dt>{f.label}</dt>
                 <dd>{data[f.name] || '—'}</dd>
               </div>
             ))}
           </dl>
-          <Button onClick={() => setEditing(true)}>Редагувати</Button>
-          {savedAt && <small className="hint"> Збережено</small>}
-        </>
+        </section>
       ) : (
-        <form onSubmit={save}>
+        <section className="company-profile">
+          <div className="company-profile__header">
+            <div>
+              <h2 className="company-profile__title">Профіль компанії</h2>
+              <small className="hint">Редагування</small>
+            </div>
+          </div>
+
+          <form onSubmit={save} className="profile-form">
           {FIELDS.map((f) => (
             <Input
               key={f.name}
@@ -84,7 +107,8 @@ export function CompanyProfilePage() {
             <Button type="submit" loading={saving}>Зберегти</Button>
             <Button type="button" variant="ghost" onClick={cancel}>Скасувати</Button>
           </div>
-        </form>
+          </form>
+        </section>
       )}
     </Layout>
   );

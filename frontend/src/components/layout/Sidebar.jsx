@@ -17,6 +17,7 @@ const MENU = {
     { to: ROUTES.MANAGER.DASHBOARD, label: 'Кабінет' },
     { to: ROUTES.MANAGER.REQUESTS, label: 'Заявки' },
     { to: ROUTES.MANAGER.BUSINESS_CLIENTS, label: 'Бізнес-клієнти' },
+    { to: ROUTES.MANAGER.MASTERS, label: 'Майстри' },
     { to: ROUTES.MANAGER.ANALYTICS, label: 'Аналітика' },
     PROFILE_ITEM,
   ],

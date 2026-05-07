@@ -9,6 +9,7 @@ export function ManagerDashboard() {
       <div className="dashboard-tiles">
         <Link to={ROUTES.MANAGER.REQUESTS}>Заявки</Link>
         <Link to={ROUTES.MANAGER.BUSINESS_CLIENTS}>Бізнес-клієнти</Link>
+        <Link to={ROUTES.MANAGER.MASTERS}>Майстри</Link>
         <Link to={ROUTES.MANAGER.ANALYTICS}>Аналітика</Link>
       </div>
     </Layout>

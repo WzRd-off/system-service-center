@@ -5,8 +5,16 @@ import { ErrorMessage } from '../../components/common/ErrorMessage.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
 import { requestsApi } from '../../api/requests.api.js';
 
+const ACTIVE_STATUSES = [
+  'new_request', 'accepted', 'awaiting_clarification', 
+  'technician_assigned', 'diagnostics_in_progress', 
+  'awaiting_approval', 'repair_in_progress', 'awaiting_parts'
+];
+
 export function MyRequestsPage() {
   const { data, loading, error } = useFetch(() => requestsApi.list());
+
+  const activeRequests = data?.filter(r => ACTIVE_STATUSES.includes(r.status)) || [];
 
   return (
     <Layout>
@@ -16,7 +24,7 @@ export function MyRequestsPage() {
       ) : error ? (
         <ErrorMessage error={error} />
       ) : (
-        <RequestList requests={data} basePath="/client/requests" />
+        <RequestList requests={activeRequests} basePath="/client/requests" />
       )}
     </Layout>
   );

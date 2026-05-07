@@ -2,6 +2,8 @@ import { api } from './client.js';
 
 export const mastersApi = {
   list: () => api.get('/masters'),
+  create: (data) => api.post('/masters', data),
+  remove: (id) => api.delete(`/masters/${id}`),
   getAssignedRequests: () => api.get('/masters/requests'),
   updateRequestStatus: (id, status) =>
     api.patch(`/masters/requests/${id}/status`, { status }),

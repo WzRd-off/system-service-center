@@ -3,13 +3,16 @@ import { ApiError } from '../utils/ApiError.js';
 
 const ROLE = {
   CLIENT: 'Клієнт',
+  MANAGER: 'Менеджер',
   TECHNICIAN: 'Майстер',
-  BUSINESS: 'Бізнес-клієнт',
+  BUSINESS: 'Бізнес-клієнт'
 };
 
 const PROFILE_TABLE = {
   [ROLE.CLIENT]: 'client_profiles',
   [ROLE.TECHNICIAN]: 'technician_profiles',
+  [ROLE.MANAGER]: 'manager_profiles',
+  [ROLE.BUSINESS]: 'business_client_profiles'
 };
 
 class UsersService {
@@ -19,27 +22,31 @@ class UsersService {
       [userId]
     );
     const user = rows[0];
-    if (!user) throw ApiError.notFound('Користувача не знайдено');
+    if (!user) throw ApiError.notFound('User not found');
 
     const table = PROFILE_TABLE[user.role];
     if (table) {
       let profile = await this._getProfile(table, userId);
       if (!profile) {
         await db.query(
-          `INSERT INTO ${table} (user_id, email)
-           VALUES ($1, $2)
+          `INSERT INTO ${table} (user_id)
+           VALUES ($1)
            ON CONFLICT (user_id) DO NOTHING`,
-          [userId, user.email]
+          [userId]
         );
         profile = await this._getProfile(table, userId);
       }
+      
       if (profile) {
         return {
           ...user,
           first_name: profile.first_name,
           last_name: profile.last_name,
-          phone: profile.phone || user.phone,
-          email: profile.email || user.email,
+          address: profile.address,
+          ...(table === PROFILE_TABLE[ROLE.TECHNICIAN] ? { specialty: profile.specialty } : {}),
+          ...(table === PROFILE_TABLE[ROLE.BUSINESS] ? { company_name: profile.company_name, edrpou: profile.edrpou } : {}),
+          phone: user.phone,
+          email: user.email,
         };
       }
     }
@@ -57,9 +64,9 @@ class UsersService {
       [userId]
     );
     const user = userRows[0];
-    if (!user) throw ApiError.notFound('Користувача не знайдено');
+    if (!user) throw ApiError.notFound('User not found');
 
-    const { phone, email, first_name, last_name } = data;
+    const { phone, email, first_name, last_name, address, specialty } = data;
 
     await db.query(
       `UPDATE users
@@ -71,16 +78,34 @@ class UsersService {
     );
 
     const table = PROFILE_TABLE[user.role];
-    if (table) {
+    if (table === PROFILE_TABLE[ROLE.CLIENT]) {
       await db.query(
-        `INSERT INTO ${table} (user_id, first_name, last_name, phone, email)
-         VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO client_profiles (user_id, first_name, last_name, address)
+         VALUES ($1, $2, $3, $4)
          ON CONFLICT (user_id) DO UPDATE SET
-           first_name = COALESCE(EXCLUDED.first_name, ${table}.first_name),
-           last_name  = COALESCE(EXCLUDED.last_name,  ${table}.last_name),
-           phone      = COALESCE(EXCLUDED.phone,      ${table}.phone),
-           email      = COALESCE(EXCLUDED.email,      ${table}.email)`,
-        [userId, first_name ?? null, last_name ?? null, phone ?? null, email ?? null]
+           first_name = COALESCE(EXCLUDED.first_name, client_profiles.first_name),
+           last_name  = COALESCE(EXCLUDED.last_name, client_profiles.last_name),
+           address    = COALESCE(EXCLUDED.address, client_profiles.address)`,
+        [userId, first_name ?? null, last_name ?? null, address ?? null]
+      );
+    } else if (table === PROFILE_TABLE[ROLE.TECHNICIAN]) {
+      await db.query(
+        `INSERT INTO technician_profiles (user_id, first_name, last_name, specialty)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (user_id) DO UPDATE SET
+           first_name = COALESCE(EXCLUDED.first_name, technician_profiles.first_name),
+           last_name  = COALESCE(EXCLUDED.last_name, technician_profiles.last_name),
+           specialty  = COALESCE(EXCLUDED.specialty, technician_profiles.specialty)`,
+        [userId, first_name ?? null, last_name ?? null, specialty ?? null]
+      );
+    } else if (table === PROFILE_TABLE[ROLE.MANAGER]) {
+      await db.query(
+        `INSERT INTO manager_profiles (user_id, first_name, last_name)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (user_id) DO UPDATE SET
+           first_name = COALESCE(EXCLUDED.first_name, manager_profiles.first_name),
+           last_name  = COALESCE(EXCLUDED.last_name, manager_profiles.last_name)`,
+        [userId, first_name ?? null, last_name ?? null]
       );
     }
 

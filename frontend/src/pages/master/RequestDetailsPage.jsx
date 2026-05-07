@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout.jsx';
 import { Spinner } from '../../components/common/Spinner.jsx';
@@ -24,12 +24,23 @@ export function MasterRequestDetailsPage() {
   const { id } = useParams();
   const request = useFetch(() => requestsApi.getById(id), [id]);
   const comments = useFetch(() => commentsApi.listByRequest(id), [id]);
+  
   const [report, setReport] = useState({
     diagnosticResult: '',
     workDescription: '',
     usedParts: '',
   });
   const [notifying, setNotifying] = useState(false);
+
+  useEffect(() => {
+    if (request.data?.work_report) {
+      setReport({
+        diagnosticResult: request.data.work_report.diagnostic_result || '',
+        workDescription: request.data.work_report.work_description || '',
+        usedParts: request.data.work_report.used_parts || '',
+      });
+    }
+  }, [request.data]);
 
   if (request.loading) return <Layout><Spinner /></Layout>;
   if (!request.data) return <Layout><p>Заявку не знайдено</p></Layout>;
@@ -44,7 +55,6 @@ export function MasterRequestDetailsPage() {
   const submitReport = async (e) => {
     e.preventDefault();
     await mastersApi.addWorkReport({ ...report, requestId: Number(id) });
-    setReport({ diagnosticResult: '', workDescription: '', usedParts: '' });
     request.reload();
   };
 
@@ -56,7 +66,8 @@ export function MasterRequestDetailsPage() {
   const notifyComplete = async () => {
     setNotifying(true);
     try {
-      await mastersApi.notifyManagerCompleted(id);
+      // ИСПРАВЛЕНО: Назва методу синхронізована з бекендом
+      await mastersApi.notifyCompletion(id);
       await mastersApi.updateRequestStatus(id, 'completed');
       request.reload();
     } finally {
@@ -70,7 +81,7 @@ export function MasterRequestDetailsPage() {
       <RequestStatus status={r.status} />
 
       <section className="request-details">
-        <h3>Інформація про техніку та заявку</h3>
+        <h3>Деталі</h3>
         <dl>
           <dt>Створено</dt><dd>{formatDateTime(r.created_at)}</dd>
           <dt>Тип техніки</dt><dd>{r.type || '—'}</dd>
@@ -78,16 +89,16 @@ export function MasterRequestDetailsPage() {
           <dt>Модель</dt><dd>{r.model || '—'}</dd>
           <dt>Серійний номер</dt><dd>{r.serial_number || '—'}</dd>
           {r.address && (<><dt>Адреса</dt><dd>{r.address}</dd></>)}
-          <dt>Контактна особа</dt>
+          <dt>Клієнт</dt>
           <dd>{r.client_name || r.contact_person || '—'}</dd>
           <dt>Телефон</dt><dd>{r.contact_phone || '—'}</dd>
           <dt>Опис проблеми</dt><dd>{r.description}</dd>
-          {r.comment && (<><dt>Коментар клієнта</dt><dd>{r.comment}</dd></>)}
+          {r.comment && (<><dt>Коментар</dt><dd>{r.comment}</dd></>)}
         </dl>
       </section>
 
       <section>
-        <h3>Статус виконання</h3>
+        <h3>Зміна статусу</h3>
         <Select
           options={statusOptions}
           value={r.status}
@@ -96,10 +107,10 @@ export function MasterRequestDetailsPage() {
       </section>
 
       <section>
-        <h3>Звіт про виконані роботи</h3>
+        <h3>Звіт майстра</h3>
         <form onSubmit={submitReport}>
           <Input
-            label="Результат діагностики"
+            label="Діагностика"
             value={report.diagnosticResult}
             onChange={(e) => setReport({ ...report, diagnosticResult: e.target.value })}
           />
@@ -109,7 +120,7 @@ export function MasterRequestDetailsPage() {
             onChange={(e) => setReport({ ...report, workDescription: e.target.value })}
           />
           <Input
-            label="Використані запчастини"
+            label="Запчастини"
             value={report.usedParts}
             onChange={(e) => setReport({ ...report, usedParts: e.target.value })}
           />
@@ -121,7 +132,7 @@ export function MasterRequestDetailsPage() {
               loading={notifying}
               onClick={notifyComplete}
             >
-              Повідомити про завершення робіт
+              Повідомити про завершення
             </Button>
           </div>
         </form>

@@ -11,6 +11,8 @@ const router = Router();
 router.use(authMiddleware);
 
 router.get('/', managerMiddleware, mastersController.list);
+router.post('/', managerMiddleware, mastersController.create);
+router.delete('/:id', managerMiddleware, mastersController.remove);
 
 router.get('/requests', masterMiddleware, mastersController.getAssignedRequests);
 router.patch('/requests/:id/status', masterMiddleware, mastersController.updateRequestStatus);

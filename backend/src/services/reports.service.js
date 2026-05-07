@@ -26,7 +26,7 @@ class ReportsService {
     const { rows } = await db.query(
       `SELECT bcp.id, bcp.company_name, COUNT(sr.id)::int AS total_requests
        FROM business_client_profiles bcp
-       LEFT JOIN service_requests sr ON sr.business_client_id = bcp.id
+       LEFT JOIN service_requests sr ON sr.user_id = bcp.user_id
        GROUP BY bcp.id`
     );
     return rows;

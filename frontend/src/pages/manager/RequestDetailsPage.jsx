@@ -40,6 +40,7 @@ export function ManagerRequestDetailsPage() {
     e.preventDefault();
     if (!technicianId) return;
     await requestsApi.assignTechnician(id, Number(technicianId));
+    setTechnicianId(''); 
     request.reload();
   };
 
@@ -83,7 +84,7 @@ export function ManagerRequestDetailsPage() {
           {r.comment && (<><dt>Коментар клієнта</dt><dd>{r.comment}</dd></>)}
           <dt>Призначений майстер</dt>
           <dd>
-            {r.technician_name || (r.technician_id ? `ID ${r.technician_id}` : 'не призначено')}
+            {r.technician_name || (r.assigned_technician_id ? `ID ${r.assigned_technician_id}` : 'не призначено')}
           </dd>
         </dl>
       </section>

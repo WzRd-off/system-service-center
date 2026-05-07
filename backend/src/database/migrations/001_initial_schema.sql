@@ -65,8 +65,6 @@ CREATE TABLE IF NOT EXISTS client_profiles (
   user_id INTEGER UNIQUE REFERENCES users(id),
   first_name VARCHAR(100),
   last_name VARCHAR(100),
-  phone VARCHAR(20),
-  email VARCHAR(255),
   address TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
@@ -78,8 +76,6 @@ CREATE TABLE IF NOT EXISTS business_client_profiles (
   company_name VARCHAR(255) NOT NULL,
   edrpou VARCHAR(20),
   contact_person VARCHAR(255),
-  phone VARCHAR(20),
-  email VARCHAR(255),
   address TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
@@ -90,17 +86,23 @@ CREATE TABLE IF NOT EXISTS technician_profiles (
   user_id INTEGER UNIQUE REFERENCES users(id),
   first_name VARCHAR(100),
   last_name VARCHAR(100),
-  phone VARCHAR(20),
-  email VARCHAR(255),
   specialty VARCHAR(255),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Managers profiles
+CREATE TABLE IF NOT EXISTS manager_profiles (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER UNIQUE REFERENCES users(id),
+  first_name VARCHAR(100),
+  last_name VARCHAR(100),
   created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Devices
 CREATE TABLE IF NOT EXISTS devices (
   id SERIAL PRIMARY KEY,
-  client_id INTEGER REFERENCES client_profiles(id),
-  business_client_id INTEGER REFERENCES business_client_profiles(id),
+  user_id INTEGER REFERENCES users(id),
   type VARCHAR(100),
   manufacturer VARCHAR(100),
   model VARCHAR(100),
@@ -113,13 +115,14 @@ CREATE TABLE IF NOT EXISTS devices (
 CREATE TABLE IF NOT EXISTS service_requests (
   id SERIAL PRIMARY KEY,
   request_number VARCHAR(50) UNIQUE NOT NULL,
-  client_id INTEGER REFERENCES client_profiles(id),
-  business_client_id INTEGER REFERENCES business_client_profiles(id),
+  user_id INTEGER REFERENCES users(id),
   device_id INTEGER REFERENCES devices(id),
   description TEXT NOT NULL,
   status VARCHAR(50) NOT NULL REFERENCES request_statuses(code),
   assigned_technician_id INTEGER REFERENCES technician_profiles(id),
   preferred_contact VARCHAR(50),
+  service_type VARCHAR(50),
+  service_address TEXT,
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -166,3 +169,21 @@ CREATE TABLE IF NOT EXISTS maintenance_plans (
   notes TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
+
+INSERT INTO users (email, phone, password, role) VALUES
+('client@gmail.com', '0987654321', '$2b$10$0d2lhLePsYaQFajkctyvBu1jECwqi8zyUX10U8g02IQ65SL8qkZ8a', 'Клієнт'),
+('business-client@gmail.com', '0997654321', '$2b$10$BvYFC4YLLce9Xd2ADL1rIeMQ/vcsJ4Y4bCA3waqOJ3wh6rGU6XXkO', 'Бізнес-клієнт'),
+('manager@gmail.com', '088765431', '$2b$10$ddSeGTt6NcOlo8LWwuZGL..mok.gczdBu7Ow3L0wzaNBxSeqIRwCW', 'Менеджер'),
+('master@gmail.com', '0977543212', '$2b$10$NM3t9Rgn95STGJ6Qp9RRz.VtkVlsWf3VtRG2s1G9yfTSu3IP101D6', 'Майстер');
+
+INSERT INTO client_profiles (user_id, first_name, last_name, address) VALUES
+(1, 'Іван', 'Іванов', 'вул. Пушкіна, 10, кв. 5');
+
+INSERT INTO business_client_profiles (user_id, company_name, edrpou, contact_person, address) VALUES
+(2, 'ТОВ ТехноСервіс', '12345678', 'Петро Петров', 'вул. Канатна, 20');
+
+INSERT INTO manager_profiles (user_id, first_name, last_name) VALUES
+(3, 'Ольга', 'Ольгова');
+
+INSERT INTO technician_profiles (user_id, first_name, last_name, specialty) VALUES
+(4, 'Сергій', 'Сергієнко', 'Ремонт компютерів');

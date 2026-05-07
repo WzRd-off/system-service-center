@@ -4,18 +4,20 @@ import { requireFields } from '../utils/validation.js';
 
 export const requestsController = {
   create: asyncHandler(async (req, res) => {
-    requireFields(req.body, ['description']);
-    const request = await requestsService.create(req.body);
+    requireFields(req.body, ['description']);    
+    const request = await requestsService.create({
+      ...req.body,
+      userId: req.user.id
+    });
     res.status(201).json(request);
   }),
 
   list: asyncHandler(async (req, res) => {
-    const { status, technicianId, clientId, businessClientId, limit, offset } = req.query;
+    const { status, technicianId, userId, limit, offset } = req.query;
     const requests = await requestsService.list({
       status,
       technicianId: technicianId && Number(technicianId),
-      clientId: clientId && Number(clientId),
-      businessClientId: businessClientId && Number(businessClientId),
+      userId: userId && Number(userId),
       limit: limit ? Number(limit) : undefined,
       offset: offset ? Number(offset) : undefined
     });

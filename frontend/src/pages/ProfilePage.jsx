@@ -7,9 +7,10 @@ import { useFetch } from '../hooks/useFetch.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { usersApi } from '../api/users.api.js';
 import { authApi } from '../api/auth.api.js';
+import { ROLES } from '../constants/roles.js';
 import { isEmail, isPhone, isStrongPassword } from '../utils/validators.js';
 
-const PROFILE_FIELDS = [
+const BASE_PROFILE_FIELDS = [
   { name: 'first_name', label: "Ім'я" },
   { name: 'last_name', label: 'Прізвище' },
   { name: 'email', label: 'Email', type: 'email' },
@@ -19,6 +20,7 @@ const PROFILE_FIELDS = [
 export function ProfilePage() {
   const { user } = useAuth();
   const profile = useFetch(() => usersApi.getProfile(), []);
+  const [activeTab, setActiveTab] = useState('profile'); // 'profile' або 'password'
   const [form, setForm] = useState({});
   const [errors, setErrors] = useState({});
   const [savingProfile, setSavingProfile] = useState(false);
@@ -35,6 +37,8 @@ export function ProfilePage() {
 
   if (profile.loading) return <Layout><Spinner /></Layout>;
 
+  const isBusinessClient = user?.role === ROLES.BUSINESS_CLIENT;
+
   const change = (e) => {
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
     setErrors((er) => ({ ...er, [e.target.name]: undefined }));
@@ -43,7 +47,7 @@ export function ProfilePage() {
 
   const validateProfile = () => {
     const er = {};
-    if (!form.first_name?.trim()) er.first_name = "Вкажіть ім'я";
+    if (!isBusinessClient && !form.first_name?.trim()) er.first_name = "Вкажіть ім'я";
     if (form.email && !isEmail(form.email)) er.email = 'Некоректний email';
     if (form.phone && !isPhone(form.phone)) er.phone = 'Некоректний телефон';
     setErrors(er);
@@ -107,11 +111,34 @@ export function ProfilePage() {
     <Layout>
       <h2>Особистий профіль</h2>
 
-      <section>
-        <h3>Персональні дані</h3>
-        <p className="hint">Роль: {user?.role || '—'}</p>
-        <form onSubmit={saveProfile} className="profile-form">
-          {PROFILE_FIELDS.map((f) => (
+      <div className="tabs">
+        <button
+          className={activeTab === 'profile' ? 'active' : ''}
+          onClick={() => setActiveTab('profile')}
+        >
+          Дані профілю
+        </button>
+        <button
+          className={activeTab === 'password' ? 'active' : ''}
+          onClick={() => setActiveTab('password')}
+        >
+          Зміна пароля
+        </button>
+      </div>
+
+      {activeTab === 'profile' && (
+        <section>
+          <h3>Персональні дані</h3>
+          <p className="hint">Роль: {user?.role || '—'}</p>
+          <form onSubmit={saveProfile} className="profile-form">
+            {[
+            ...(isBusinessClient
+              ? BASE_PROFILE_FIELDS.filter((f) => !['first_name', 'last_name'].includes(f.name))
+              : BASE_PROFILE_FIELDS),
+            ...(user?.role === ROLES.CLIENT ? [{ name: 'address', label: 'Адреса' }] : []),
+            ...(user?.role === ROLES.TECHNICIAN ? [{ name: 'specialty', label: 'Спеціалізація' }] : []),
+            ...(isBusinessClient ? [{ name: 'company_name', label: 'Назва компанії' }] : []),
+          ].map((f) => (
             <Input
               key={f.name}
               label={f.label}
@@ -132,12 +159,14 @@ export function ProfilePage() {
           )}
         </form>
       </section>
+      )}
 
-      <section>
-        <h3>Зміна пароля</h3>
-        <form onSubmit={submitPwd} className="profile-form">
-          <Input
-            label="Поточний пароль"
+      {activeTab === 'password' && (
+        <section>
+          <h3>Зміна пароля</h3>
+          <form onSubmit={submitPwd} className="profile-form">
+            <Input
+              label="Поточний пароль"
             name="currentPassword"
             type="password"
             value={pwd.currentPassword}
@@ -177,6 +206,7 @@ export function ProfilePage() {
           )}
         </form>
       </section>
+      )}
     </Layout>
   );
 }
