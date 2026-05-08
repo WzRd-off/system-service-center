@@ -5,6 +5,7 @@ import { ProtectedRoute } from './ProtectedRoute.jsx';
 
 import { LoginPage } from '../pages/auth/LoginPage.jsx';
 import { RegisterPage } from '../pages/auth/RegisterPage.jsx';
+import { LandingPage } from '../pages/LandingPage.jsx';
 
 import { ClientDashboard } from '../pages/client/ClientDashboard.jsx';
 import { NewRequestPage } from '../pages/client/NewRequestPage.jsx';
@@ -36,7 +37,7 @@ import { NotFoundPage } from '../pages/NotFoundPage.jsx';
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path={ROUTES.HOME} element={<Navigate to={ROUTES.LOGIN} replace />} />
+      <Route path={ROUTES.HOME} element={<LandingPage />} />
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
 

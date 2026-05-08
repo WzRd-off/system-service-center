@@ -31,7 +31,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="auth-page">
+    <div className="canvas-card canvas-card--auth auth-page">
       <h2>Вхід</h2>
       <form onSubmit={submit}>
         <Input label="Пошта" name="email" type="email" value={form.email} onChange={change} required />

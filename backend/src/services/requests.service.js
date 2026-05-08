@@ -131,10 +131,11 @@ class RequestsService {
        LEFT JOIN users u_cp ON u_cp.id = cp.user_id
        LEFT JOIN business_client_profiles bcp ON bcp.user_id = sr.user_id
        LEFT JOIN users u_bc ON u_bc.id = bcp.user_id
-       LEFT JOIN technician_profiles tp ON tp.id = sr.assigned_technician_id
+       LEFT JOIN technician_profiles tp ON tp.id = sr.assigned_technician_id  
        ${where}
        ORDER BY sr.created_at DESC
-       LIMIT $${params.length - 1} OFFSET $${params.length}`,
+       LIMIT $${params.length - 1} OFFSET $${params.length}
+       `,
       params
     );
     return rows;

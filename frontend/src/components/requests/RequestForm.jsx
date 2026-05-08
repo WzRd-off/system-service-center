@@ -59,90 +59,120 @@ export function RequestForm({
 
   return (
     <form onSubmit={submit} className="request-form">
-      {businessFields && devices.length > 0 && (
-        <Select
-          label="Техніка зі списку компанії"
-          name="deviceId"
-          value={form.deviceId}
-          options={deviceOptions}
-          placeholder="— оберіть пристрій або заповніть поля нижче —"
-          onChange={change}
-          hint="Якщо обрано — поля виробника/моделі можна не заповнювати"
-        />
-      )}
+      <div className="form-section">
+        <h3 className="section-title">Інформація про техніку</h3>
 
-      <Input label="Тип техніки" name="type" value={form.type} onChange={change} required />
-      <Input label="Виробник" name="manufacturer" value={form.manufacturer} onChange={change} />
-      <Input label="Модель" name="model" value={form.model} onChange={change} />
-      <Input label="Серійний номер" name="serialNumber" value={form.serialNumber} onChange={change} />
-      <Input
-        label="Опис несправності або потреби в обслуговуванні"
-        name="description"
-        value={form.description}
-        onChange={change}
-        required
-      />
-
-      <Input
-        label="Контактний телефон"
-        name="contactPhone"
-        type="tel"
-        value={form.contactPhone}
-        onChange={change}
-      />
-      <Input
-        label="Електронна пошта"
-        name="contactEmail"
-        type="email"
-        value={form.contactEmail}
-        onChange={change}
-      />
-      <Select
-        label="Бажаний спосіб зв'язку"
-        name="preferredContact"
-        value={form.preferredContact}
-        options={contactOptions}
-        onChange={change}
-      />
-
-      {businessFields && (
-        <>
-          {businessContactPerson !== undefined && (
-            <Input
-              label="Контактна особа"
-              name="contactPerson"
-              value={businessContactPerson || '—'}
+        {businessFields && devices.length > 0 && (
+          <div className="request-form-device-select">
+            <Select
+              label="Техніка зі списку компанії"
+              name="deviceId"
+              value={form.deviceId}
+              options={deviceOptions}
+              placeholder="— оберіть пристрій або заповніть поля нижче —"
               onChange={change}
-              disabled
-              hint="Береться з профілю компанії"
+              hint="Якщо обрано — поля виробника/моделі можна не заповнювати"
             />
-          )}
+          </div>
+        )}
+
+        <div className="grid-2">
+          <Input label="Тип техніки" name="type" value={form.type} onChange={change} required />
+          <Input label="Серійний номер" name="serialNumber" value={form.serialNumber} onChange={change} />
+          <Input label="Виробник" name="manufacturer" value={form.manufacturer} onChange={change} />
+          <Input label="Модель" name="model" value={form.model} onChange={change} />
+        </div>
+
+        <div className="request-form-textarea">
           <Input
-            label="Адреса об'єкта"
-            name="address"
-            value={form.address}
+            type="textarea"
+            label="Опис несправності або потреби в обслуговуванні"
+            name="description"
+            value={form.description}
             onChange={change}
             required
           />
-          <Select
-            label="Тип обслуговування"
-            name="serviceType"
-            value={form.serviceType}
-            options={serviceTypeOptions}
+        </div>
+      </div>
+
+      <div className="form-section">
+        <h3 className="section-title">Контактні дані</h3>
+
+        <div className="grid-2">
+          <Input
+            label="Контактний телефон"
+            name="contactPhone"
+            type="tel"
+            value={form.contactPhone}
             onChange={change}
           />
-        </>
+          <Input
+            label="Електронна пошта"
+            name="contactEmail"
+            type="email"
+            value={form.contactEmail}
+            onChange={change}
+          />
+        </div>
+        <div className="request-form-preferred-contact">
+          <Select
+            label="Бажаний спосіб зв'язку"
+            name="preferredContact"
+            value={form.preferredContact}
+            options={contactOptions}
+            onChange={change}
+          />
+        </div>
+      </div>
+
+      {businessFields && (
+        <div className="form-section">
+          <h3 className="section-title">Деталі об'єкта та обслуговування</h3>
+
+          <div className="grid-2">
+            {businessContactPerson !== undefined && (
+              <Input
+                label="Контактна особа"
+                name="contactPerson"
+                value={businessContactPerson || '—'}
+                onChange={change}
+                disabled
+                hint="Береться з профілю компанії"
+              />
+            )}
+            <Input
+              label="Адреса об'єкта"
+              name="address"
+              value={form.address}
+              onChange={change}
+              required
+            />
+          </div>
+          <div className="request-form-preferred-contact">
+            <Select
+              label="Тип обслуговування"
+              name="serviceType"
+              value={form.serviceType}
+              options={serviceTypeOptions}
+              onChange={change}
+            />
+          </div>
+        </div>
       )}
 
-      <Input
-        label="Додатковий коментар"
-        name="comment"
-        value={form.comment}
-        onChange={change}
-        hint="За потреби вкажіть деталі"
-      />
+      <div className="form-section">
+        <Input
+          label="Додатковий коментар"
+          name="comment"
+          value={form.comment}
+          onChange={change}
+          hint="За потреби вкажіть деталі"
+        />
+      </div>
 
-      <Button type="submit" variant="primary">Створити заявку</Button>
+      <div className="form-section form-section--footer">
+        <Button type="submit" variant="primary">Створити заявку</Button>
+      </div>
     </form>
   );
 }

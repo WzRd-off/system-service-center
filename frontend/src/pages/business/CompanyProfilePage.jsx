@@ -63,9 +63,10 @@ export function CompanyProfilePage() {
 
   return (
     <Layout>
+      <div className="canvas-stack">
       {!editing ? (
-        <section className="company-profile">
-          <div className="company-profile__header">
+        <section className="company-profile canvas-card">
+          <div className="company-profile__header canvas-header">
             <div>
               <h2 className="company-profile__title">Профіль компанії</h2>
               {savedAt && <small className="hint">Збережено</small>}
@@ -83,8 +84,8 @@ export function CompanyProfilePage() {
           </dl>
         </section>
       ) : (
-        <section className="company-profile">
-          <div className="company-profile__header">
+        <section className="company-profile canvas-card">
+          <div className="company-profile__header canvas-header">
             <div>
               <h2 className="company-profile__title">Профіль компанії</h2>
               <small className="hint">Редагування</small>
@@ -110,6 +111,7 @@ export function CompanyProfilePage() {
           </form>
         </section>
       )}
+      </div>
     </Layout>
   );
 }

@@ -10,14 +10,20 @@ export function ServiceHistoryPage() {
 
   return (
     <Layout>
-      <h2>Історія обслуговування</h2>
-      {loading ? (
-        <Spinner />
-      ) : error ? (
-        <ErrorMessage error={error} />
-      ) : (
-        <RequestList requests={data} basePath="/business/history" />
-      )}
+      <div className="canvas-stack">
+        <section className="canvas-card canvas-card--compact">
+          <h2>Історія обслуговування</h2>
+        </section>
+        <section className="canvas-card">
+          {loading ? (
+            <Spinner />
+          ) : error ? (
+            <ErrorMessage error={error} />
+          ) : (
+            <RequestList requests={data} basePath="/business/history" />
+          )}
+        </section>
+      </div>
     </Layout>
   );
 }

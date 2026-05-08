@@ -19,17 +19,23 @@ export function BusinessNewRequestPage() {
 
   return (
     <Layout>
-      <h2>Нова заявка</h2>
-      {devices.loading || profile.loading ? (
-        <Spinner />
-      ) : (
-        <RequestForm
-          onSubmit={handleSubmit}
-          businessFields
-          devices={devices.data || []}
-          businessContactPerson={profile.data?.contact_person}
-        />
-      )}
+      <div className="canvas-stack">
+        <section className="canvas-card canvas-card--compact">
+          <h2>Нова заявка</h2>
+        </section>
+        <section className="canvas-card">
+          {devices.loading || profile.loading ? (
+            <Spinner />
+          ) : (
+            <RequestForm
+              onSubmit={handleSubmit}
+              businessFields
+              devices={devices.data || []}
+              businessContactPerson={profile.data?.contact_person}
+            />
+          )}
+        </section>
+      </div>
     </Layout>
   );
 }

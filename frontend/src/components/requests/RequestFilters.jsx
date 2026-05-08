@@ -23,7 +23,7 @@ export function RequestFilters({ filters, onChange, technicians = [] }) {
     onChange({ status: '', dateFrom: '', dateTo: '', client: '', technicianId: '' });
 
   return (
-    <div className="request-filters">
+    <div className="request-filters canvas-filters">
       <Select
         label="Статус"
         value={filters.status || ''}

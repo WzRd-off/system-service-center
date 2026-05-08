@@ -67,7 +67,7 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="auth-page">
+    <div className="canvas-card canvas-card--auth auth-page">
       <h2>Реєстрація</h2>
       <form onSubmit={submit}>
         <Select label="Роль" name="role" value={form.role} options={roleOptions} onChange={change} />

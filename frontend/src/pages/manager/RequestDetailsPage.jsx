@@ -59,10 +59,13 @@ export function ManagerRequestDetailsPage() {
 
   return (
     <Layout>
-      <h2>Заявка № {r.request_number}</h2>
-      <RequestStatus status={r.status} />
+      <div className="canvas-stack">
+      <section className="canvas-card canvas-card--compact">
+        <h2>Заявка № {r.request_number}</h2>
+        <RequestStatus status={r.status} />
+      </section>
 
-      <section className="request-details">
+      <section className="request-details canvas-card">
         <h3>Інформація про заявку</h3>
         <dl>
           <dt>Створено</dt><dd>{formatDateTime(r.created_at)}</dd>
@@ -89,7 +92,7 @@ export function ManagerRequestDetailsPage() {
         </dl>
       </section>
 
-      <section>
+      <section className="canvas-card">
         <h3>Зміна статусу</h3>
         <Select
           options={statusOptions}
@@ -98,7 +101,7 @@ export function ManagerRequestDetailsPage() {
         />
       </section>
 
-      <section>
+      <section className="canvas-card">
         <h3>Призначити майстра</h3>
         <form onSubmit={assign} className="assign-form">
           <Select
@@ -112,7 +115,7 @@ export function ManagerRequestDetailsPage() {
       </section>
 
       {r.work_report && (
-        <section>
+        <section className="canvas-card">
           <h3>Звіт майстра</h3>
           <dl>
             {r.work_report.diagnostic_result && (
@@ -137,11 +140,12 @@ export function ManagerRequestDetailsPage() {
         </section>
       )}
 
-      <section>
+      <section className="canvas-card">
         <h3>Коментарі</h3>
         <CommentList comments={comments.data || []} />
         <CommentForm onSubmit={sendComment} />
       </section>
+      </div>
     </Layout>
   );
 }

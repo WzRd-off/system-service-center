@@ -77,10 +77,13 @@ export function MasterRequestDetailsPage() {
 
   return (
     <Layout>
-      <h2>Заявка № {r.request_number}</h2>
-      <RequestStatus status={r.status} />
+      <div className="canvas-stack">
+      <section className="canvas-card canvas-card--compact">
+        <h2>Заявка № {r.request_number}</h2>
+        <RequestStatus status={r.status} />
+      </section>
 
-      <section className="request-details">
+      <section className="request-details canvas-card">
         <h3>Деталі</h3>
         <dl>
           <dt>Створено</dt><dd>{formatDateTime(r.created_at)}</dd>
@@ -97,7 +100,7 @@ export function MasterRequestDetailsPage() {
         </dl>
       </section>
 
-      <section>
+      <section className="canvas-card">
         <h3>Зміна статусу</h3>
         <Select
           options={statusOptions}
@@ -106,7 +109,7 @@ export function MasterRequestDetailsPage() {
         />
       </section>
 
-      <section>
+      <section className="canvas-card">
         <h3>Звіт майстра</h3>
         <form onSubmit={submitReport}>
           <Input
@@ -138,11 +141,12 @@ export function MasterRequestDetailsPage() {
         </form>
       </section>
 
-      <section>
+      <section className="canvas-card">
         <h3>Коментарі</h3>
         <CommentList comments={comments.data || []} />
         <CommentForm onSubmit={sendComment} />
       </section>
+      </div>
     </Layout>
   );
 }

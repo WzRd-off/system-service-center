@@ -33,19 +33,27 @@ export function AllRequestsPage() {
 
   return (
     <Layout>
-      <h2>Усі заявки</h2>
-      <RequestFilters
-        filters={filters}
-        onChange={setFilters}
-        technicians={technicians.data || []}
-      />
-      {requests.loading ? (
-        <Spinner />
-      ) : requests.error ? (
-        <ErrorMessage error={requests.error} />
-      ) : (
-        <RequestList requests={requests.data} basePath="/manager/requests" />
-      )}
+      <div className="canvas-stack">
+        <section className="canvas-card canvas-card--compact">
+          <h2>Усі заявки</h2>
+        </section>
+        <section className="canvas-card">
+          <RequestFilters
+            filters={filters}
+            onChange={setFilters}
+            technicians={technicians.data || []}
+          />
+        </section>
+        <section className="canvas-card">
+          {requests.loading ? (
+            <Spinner />
+          ) : requests.error ? (
+            <ErrorMessage error={requests.error} />
+          ) : (
+            <RequestList requests={requests.data} basePath="/manager/requests" />
+          )}
+        </section>
+      </div>
     </Layout>
   );
 }

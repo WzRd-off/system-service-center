@@ -50,11 +50,14 @@ export function MaintenancePlansPage() {
 
   return (
     <Layout>
-      <h2>Планове обслуговування</h2>
+      <div className="canvas-stack">
+        <section className="canvas-card canvas-card--compact">
+          <h2>Планове обслуговування</h2>
+        </section>
 
-      <section>
-        <h3>Створити план</h3>
-        <form onSubmit={submit}>
+        <section className="canvas-card">
+          <h3>Створити план</h3>
+          <form onSubmit={submit} className="section-stack">
           <Input
             label="Дата обслуговування"
             type="date"
@@ -83,30 +86,31 @@ export function MaintenancePlansPage() {
             value={form.notes}
             onChange={change}
           />
-          <Button type="submit" loading={saving}>Створити план</Button>
-        </form>
-      </section>
+            <Button type="submit" loading={saving}>Створити план</Button>
+          </form>
+        </section>
 
-      <section>
-        <h3>Список планів</h3>
-        {plans.loading ? (
-          <Spinner />
-        ) : plans.error ? (
-          <ErrorMessage error={plans.error} />
-        ) : !plans.data?.length ? (
-          <p>Планів немає</p>
-        ) : (
-          <ul className="maintenance-plans">
-            {plans.data.map((p) => (
-              <li key={p.id}>
-                <strong>{formatDate(p.schedule_date)}</strong> — {p.type}
-                {p.device_model && <span> ({p.device_type} {p.device_model})</span>}
-                {p.notes && <p>{p.notes}</p>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        <section className="canvas-card">
+          <h3>Список планів</h3>
+          {plans.loading ? (
+            <Spinner />
+          ) : plans.error ? (
+            <ErrorMessage error={plans.error} />
+          ) : !plans.data?.length ? (
+            <p>Планів немає</p>
+          ) : (
+            <ul className="maintenance-plans">
+              {plans.data.map((p) => (
+                <li key={p.id}>
+                  <strong>{formatDate(p.schedule_date)}</strong> — {p.type}
+                  {p.device_model && <span> ({p.device_type} {p.device_model})</span>}
+                  {p.notes && <p>{p.notes}</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
     </Layout>
   );
 }

@@ -15,14 +15,20 @@ export function ClientHistoryPage() {
 
   return (
     <Layout>
-      <h2>Історія заявок</h2>
-      {loading ? (
-        <Spinner />
-      ) : error ? (
-        <ErrorMessage error={error} />
-      ) : (
-        <RequestList requests={historyRequests} basePath="/client/requests" />
-      )}
+      <div className="canvas-stack">
+        <section className="canvas-card canvas-card--compact">
+          <h2>Історія заявок</h2>
+        </section>
+        <section className="canvas-card">
+          {loading ? (
+            <Spinner />
+          ) : error ? (
+            <ErrorMessage error={error} />
+          ) : (
+            <RequestList requests={historyRequests} basePath="/client/requests" />
+          )}
+        </section>
+      </div>
     </Layout>
   );
 }

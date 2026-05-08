@@ -17,15 +17,23 @@ export function CompanyDevicesPage() {
 
   return (
     <Layout>
-      <h2>Техніка компанії</h2>
-      <DeviceForm onSubmit={addDevice} />
-      {loading ? (
-        <Spinner />
-      ) : error ? (
-        <ErrorMessage error={error} />
-      ) : (
-        <DeviceList devices={data} />
-      )}
+      <div className="canvas-stack">
+        <section className="canvas-card canvas-card--compact">
+          <h2>Техніка компанії</h2>
+        </section>
+        <section className="canvas-card">
+          <DeviceForm onSubmit={addDevice} />
+        </section>
+        <section className="canvas-card">
+          {loading ? (
+            <Spinner />
+          ) : error ? (
+            <ErrorMessage error={error} />
+          ) : (
+            <DeviceList devices={data} />
+          )}
+        </section>
+      </div>
     </Layout>
   );
 }

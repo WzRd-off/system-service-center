@@ -6,7 +6,7 @@ import { NotificationList } from '../notifications/NotificationList.jsx';
 import { notificationsApi } from '../../api/notifications.api.js';
 import { ROUTES } from '../../constants/routes.js';
 
-export function Header() {
+export function Header({ navOpen = false, onToggleNav }) {
   const { user, logout } = useAuth();
   const [items, setItems] = useState([]);
   const [open, setOpen] = useState(false);
@@ -52,7 +52,26 @@ export function Header() {
 
   return (
     <header className="app-header">
-      <h1>Сервісний центр</h1>
+      <div className="app-header__brand">
+        <button
+          type="button"
+          className={`app-nav-toggle ${navOpen ? 'is-open' : ''}`}
+          aria-label="Меню"
+          aria-expanded={navOpen}
+          onClick={onToggleNav}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+        <Link to={ROUTES.HOME} className="app-brand">
+          <span className="app-brand__mark" aria-hidden="true">SC</span>
+          <span>
+            <strong>Сервісний центр</strong>
+            <small>System Service Center</small>
+          </span>
+        </Link>
+      </div>
       {user && (
         <div className="user-info">
           <div className="notifications-popover" ref={popoverRef}>
@@ -62,7 +81,7 @@ export function Header() {
               onClick={() => setOpen((v) => !v)}
               aria-label="Сповіщення"
             >
-              🔔
+              <span aria-hidden="true">🔔</span>
               {unread > 0 && <span className="notifications-badge">{unread}</span>}
             </button>
             {open && (
@@ -75,7 +94,8 @@ export function Header() {
             )}
           </div>
           <Link to={ROUTES.PROFILE} className="user-info__profile">
-            {user.email} ({user.role})
+            <span>{user.email}</span>
+            <small>{user.role}</small>
           </Link>
           <Button variant="ghost" size="sm" onClick={logout}>Вийти</Button>
         </div>

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Layout } from '../../components/layout/Layout.jsx';
 import { Input } from '../../components/common/Input.jsx';
+import { Select } from '../../components/common/Select.jsx';
 import { Button } from '../../components/common/Button.jsx';
 import { Spinner } from '../../components/common/Spinner.jsx';
 import { ErrorMessage } from '../../components/common/ErrorMessage.jsx';
@@ -25,6 +26,9 @@ export function CreateMasterPage() {
   const [formSuccess, setFormSuccess] = useState(null);
   const [removingId, setRemovingId] = useState(null);
   const [listError, setListError] = useState(null);
+  const [search, setSearch] = useState('');
+  const [sortField, setSortField] = useState('last_name');
+  const [sortDirection, setSortDirection] = useState('asc');
 
   const change = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -78,29 +82,59 @@ export function CreateMasterPage() {
     }
   };
 
+  const visibleMasters = useMemo(() => {
+    const list = Array.isArray(masters.data) ? masters.data : [];
+    const query = search.trim().toLowerCase();
+
+    const filtered = query
+      ? list.filter((m) =>
+          [
+            m.last_name,
+            m.first_name,
+            m.specialty,
+            m.email,
+            m.phone,
+          ]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase()
+            .includes(query)
+        )
+      : list;
+
+    return [...filtered].sort((a, b) => {
+      const left = String(a?.[sortField] || '');
+      const right = String(b?.[sortField] || '');
+      const cmp = left.localeCompare(right, 'uk', { sensitivity: 'base' });
+      return sortDirection === 'asc' ? cmp : -cmp;
+    });
+  }, [masters.data, search, sortField, sortDirection]);
+
   return (
     <Layout>
-      <h2>Майстри</h2>
-
-      <div className="tabs">
-        <button
-          className={activeTab === 'create' ? 'active' : ''}
-          onClick={() => setActiveTab('create')}
-        >
-          Реєстрація
-        </button>
-        <button
-          className={activeTab === 'list' ? 'active' : ''}
-          onClick={() => setActiveTab('list')}
-        >
-          Список
-        </button>
-      </div>
+      <div className="canvas-stack">
+        <section className="canvas-card canvas-card--compact">
+          <h2>Майстри</h2>
+          <div className="tabs">
+            <button
+              className={activeTab === 'create' ? 'active' : ''}
+              onClick={() => setActiveTab('create')}
+            >
+              Реєстрація
+            </button>
+            <button
+              className={activeTab === 'list' ? 'active' : ''}
+              onClick={() => setActiveTab('list')}
+            >
+              Список
+            </button>
+          </div>
+        </section>
 
       {activeTab === 'create' && (
-        <section className="card">
+        <section className="canvas-card">
           <h3>Реєстрація нового майстра</h3>
-          <form onSubmit={submit}>
+          <form onSubmit={submit} className="section-stack">
             <Input label="Пошта" name="email" type="email" value={form.email} onChange={change} required />
             <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required />
             <Input label="Телефон" name="phone" type="tel" value={form.phone} onChange={change} />
@@ -117,7 +151,7 @@ export function CreateMasterPage() {
       )}
 
       {activeTab === 'list' && (
-        <section className="card">
+        <section className="canvas-card">
           <h3>Список майстрів</h3>
           <ErrorMessage error={listError} />
 
@@ -128,42 +162,77 @@ export function CreateMasterPage() {
           ) : !masters.data?.length ? (
             <p>Майстрів немає</p>
           ) : (
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Прізвище</th>
-                  <th>Імʼя</th>
-                  <th>Спеціалізація</th>
-                  <th>Email</th>
-                  <th>Телефон</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {masters.data.map((m) => (
-                  <tr key={m.id}>
-                    <td>{m.last_name || '—'}</td>
-                    <td>{m.first_name || '—'}</td>
-                    <td>{m.specialty || '—'}</td>
-                    <td>{m.email}</td>
-                    <td>{m.phone || '—'}</td>
-                    <td>
-                      <Button
-                        size="sm"
-                        variant="danger"
-                        loading={removingId === m.id}
-                        onClick={() => remove(m)}
-                      >
-                        Видалити
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <>
+              <div className="request-filters canvas-filters">
+                <Input
+                  label="Пошук"
+                  placeholder="Прізвище, email, спеціалізація..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+                <Select
+                  label="Сортувати за"
+                  value={sortField}
+                  onChange={(e) => setSortField(e.target.value)}
+                  options={[
+                    { value: 'last_name', label: 'Прізвище' },
+                    { value: 'first_name', label: 'Імʼя' },
+                    { value: 'specialty', label: 'Спеціалізація' },
+                    { value: 'email', label: 'Email' },
+                  ]}
+                />
+                <Select
+                  label="Напрям"
+                  value={sortDirection}
+                  onChange={(e) => setSortDirection(e.target.value)}
+                  options={[
+                    { value: 'asc', label: 'За зростанням' },
+                    { value: 'desc', label: 'За спаданням' },
+                  ]}
+                />
+              </div>
+
+              <div className="table-wrap">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Прізвище</th>
+                      <th>Імʼя</th>
+                      <th>Спеціалізація</th>
+                      <th>Email</th>
+                      <th>Телефон</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visibleMasters.map((m) => (
+                      <tr key={m.id}>
+                        <td>{m.last_name || '—'}</td>
+                        <td>{m.first_name || '—'}</td>
+                        <td>{m.specialty || '—'}</td>
+                        <td>{m.email}</td>
+                        <td>{m.phone || '—'}</td>
+                        <td>
+                          <Button
+                            size="sm"
+                            variant="danger"
+                            loading={removingId === m.id}
+                            onClick={() => remove(m)}
+                          >
+                            Видалити
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {!visibleMasters.length && <p>За вашим запитом нічого не знайдено</p>}
+            </>
           )}
         </section>
       )}
+      </div>
     </Layout>
   );
 }

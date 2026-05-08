@@ -13,11 +13,12 @@ export const requestsController = {
   }),
 
   list: asyncHandler(async (req, res) => {
-    const { status, technicianId, userId, limit, offset } = req.query;
+    const { status, technicianId, limit, offset } = req.query;
+
     const requests = await requestsService.list({
       status,
       technicianId: technicianId && Number(technicianId),
-      userId: userId && Number(userId),
+      userId: req.user.id,
       limit: limit ? Number(limit) : undefined,
       offset: offset ? Number(offset) : undefined
     });

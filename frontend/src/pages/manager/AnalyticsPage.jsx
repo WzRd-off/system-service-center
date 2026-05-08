@@ -7,7 +7,7 @@ import { STATUS_LABELS } from '../../constants/statuses.js';
 
 function Section({ title, query, children }) {
   return (
-    <section>
+    <section className="canvas-card">
       <h3>{title}</h3>
       {query.loading ? (
         <Spinner />
@@ -29,11 +29,14 @@ export function AnalyticsPage() {
 
   return (
     <Layout>
-      <h2>Аналітика</h2>
+      <div className="canvas-stack">
+        <section className="canvas-card canvas-card--compact">
+          <h2>Аналітика</h2>
+        </section>
 
-      <Section title="Заявки за статусом" query={byStatus}>
+        <Section title="Заявки за статусом" query={byStatus}>
         {(rows) => (
-          <ul>
+          <ul className="analytics-list">
             {rows.map((r) => (
               <li key={r.status}>
                 {STATUS_LABELS[r.status] || r.status}: {r.count}
@@ -41,11 +44,11 @@ export function AnalyticsPage() {
             ))}
           </ul>
         )}
-      </Section>
+        </Section>
 
-      <Section title="Активність майстрів" query={technicians}>
+        <Section title="Активність майстрів" query={technicians}>
         {(rows) => (
-          <ul>
+          <ul className="analytics-list">
             {rows.map((t) => (
               <li key={t.id}>
                 {t.first_name} {t.last_name}: {t.completed}/{t.total_requests}
@@ -53,11 +56,11 @@ export function AnalyticsPage() {
             ))}
           </ul>
         )}
-      </Section>
+        </Section>
 
-      <Section title="Бізнес-клієнти" query={business}>
+        <Section title="Бізнес-клієнти" query={business}>
         {(rows) => (
-          <ul>
+          <ul className="analytics-list">
             {rows.map((b) => (
               <li key={b.id}>
                 {b.company_name}: {b.total_requests} заявок
@@ -65,7 +68,8 @@ export function AnalyticsPage() {
             ))}
           </ul>
         )}
-      </Section>
+        </Section>
+      </div>
     </Layout>
   );
 }

@@ -24,25 +24,30 @@ export function AssignedRequestsPage() {
 
   return (
     <Layout>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-        <h2>Призначені заявки</h2>
-        <div style={{ minWidth: '200px' }}>
-          <Select
-            name="statusFilter"
-            value={filter}
-            options={statusOptions}
-            onChange={(e) => setFilter(e.target.value)}
-          />
-        </div>
+      <div className="canvas-stack">
+        <section className="canvas-card">
+          <div className="canvas-header">
+            <h2>Призначені заявки</h2>
+            <div className="status-filter-wrap">
+              <Select
+                name="statusFilter"
+                value={filter}
+                options={statusOptions}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+            </div>
+          </div>
+        </section>
+        <section className="canvas-card">
+          {loading ? (
+            <Spinner />
+          ) : error ? (
+            <ErrorMessage error={error} />
+          ) : (
+            <RequestList requests={filteredData} basePath="/master/requests" />
+          )}
+        </section>
       </div>
-
-      {loading ? (
-        <Spinner />
-      ) : error ? (
-        <ErrorMessage error={error} />
-      ) : (
-        <RequestList requests={filteredData} basePath="/master/requests" />
-      )}
     </Layout>
   );
 }

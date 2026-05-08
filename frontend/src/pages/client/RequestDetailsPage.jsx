@@ -26,10 +26,13 @@ export function ClientRequestDetailsPage() {
 
   return (
     <Layout>
-      <h2>Заявка № {r.request_number}</h2>
-      <RequestStatus status={r.status} />
+      <div className="canvas-stack">
+      <section className="canvas-card canvas-card--compact">
+        <h2>Заявка № {r.request_number}</h2>
+        <RequestStatus status={r.status} />
+      </section>
 
-      <section>
+      <section className="canvas-card">
         <h3>Деталі заявки</h3>
         <dl>
           <dt>Створено</dt><dd>{formatDateTime(r.created_at)}</dd>
@@ -44,7 +47,7 @@ export function ClientRequestDetailsPage() {
       </section>
 
       {r.work_report && (
-        <section>
+        <section className="canvas-card">
           <h3>Звіт про виконані роботи</h3>
           <dl>
             {r.work_report.diagnostic_result && (
@@ -69,11 +72,12 @@ export function ClientRequestDetailsPage() {
         </section>
       )}
 
-      <section>
+      <section className="canvas-card">
         <h3>Коментарі</h3>
         <CommentList comments={comments.data || []} />
         <CommentForm onSubmit={sendComment} />
       </section>
+      </div>
     </Layout>
   );
 }

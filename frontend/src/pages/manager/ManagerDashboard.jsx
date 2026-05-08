@@ -5,12 +5,17 @@ import { ROUTES } from '../../constants/routes.js';
 export function ManagerDashboard() {
   return (
     <Layout>
-      <h2>Кабінет менеджера</h2>
-      <div className="dashboard-tiles">
-        <Link to={ROUTES.MANAGER.REQUESTS}>Заявки</Link>
-        <Link to={ROUTES.MANAGER.BUSINESS_CLIENTS}>Бізнес-клієнти</Link>
-        <Link to={ROUTES.MANAGER.MASTERS}>Майстри</Link>
-        <Link to={ROUTES.MANAGER.ANALYTICS}>Аналітика</Link>
+      <div className="canvas-stack">
+        <section className="canvas-card">
+          <h2>Кабінет менеджера</h2>
+          <p className="hint">Координуйте обробку заявок, майстрів і бізнес-клієнтів в єдиному просторі.</p>
+        </section>
+        <div className="canvas-grid">
+          <Link to={ROUTES.MANAGER.REQUESTS} className="action-tile"><span className="action-tile-icon">📋</span><h3 className="action-tile-title">Заявки</h3><p className="action-tile-text">Контроль усіх запитів і призначень.</p><div className="action-tile-footer"><span className="btn btn-outline btn-sm">Відкрити</span></div></Link>
+          <Link to={ROUTES.MANAGER.BUSINESS_CLIENTS} className="action-tile"><span className="action-tile-icon">🏢</span><h3 className="action-tile-title">Бізнес-клієнти</h3><p className="action-tile-text">Перегляд компаній, контактів і їх техніки.</p><div className="action-tile-footer"><span className="btn btn-outline btn-sm">Перейти</span></div></Link>
+          <Link to={ROUTES.MANAGER.MASTERS} className="action-tile"><span className="action-tile-icon">🛠️</span><h3 className="action-tile-title">Майстри</h3><p className="action-tile-text">Реєстрація та адміністрування майстрів.</p><div className="action-tile-footer"><span className="btn btn-outline btn-sm">Керувати</span></div></Link>
+          <Link to={ROUTES.MANAGER.ANALYTICS} className="action-tile"><span className="action-tile-icon">📊</span><h3 className="action-tile-title">Аналітика</h3><p className="action-tile-text">Зведення по статусах і активності.</p><div className="action-tile-footer"><span className="btn btn-outline btn-sm">Дивитись</span></div></Link>
+        </div>
       </div>
     </Layout>
   );

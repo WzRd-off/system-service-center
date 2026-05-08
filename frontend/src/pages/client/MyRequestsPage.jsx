@@ -18,14 +18,20 @@ export function MyRequestsPage() {
 
   return (
     <Layout>
-      <h2>Мої заявки</h2>
-      {loading ? (
-        <Spinner />
-      ) : error ? (
-        <ErrorMessage error={error} />
-      ) : (
-        <RequestList requests={activeRequests} basePath="/client/requests" />
-      )}
+      <div className="canvas-stack">
+        <section className="canvas-card canvas-card--compact">
+          <h2>Мої заявки</h2>
+        </section>
+        <section className="canvas-card">
+          {loading ? (
+            <Spinner />
+          ) : error ? (
+            <ErrorMessage error={error} />
+          ) : (
+            <RequestList requests={activeRequests} basePath="/client/requests" />
+          )}
+        </section>
+      </div>
     </Layout>
   );
 }

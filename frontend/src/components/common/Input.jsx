@@ -24,15 +24,26 @@ export function Input({
           {required && <span className="input-required" aria-hidden="true"> *</span>}
         </label>
       )}
-      <input
-        id={inputId}
-        type={type}
-        required={required}
-        aria-invalid={!!error}
-        aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
-        className="input-control"
-        {...props}
-      />
+      {type === 'textarea' ? (
+        <textarea
+          id={inputId}
+          required={required}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
+          className="input-control"
+          {...props}
+        />
+      ) : (
+        <input
+          id={inputId}
+          type={type}
+          required={required}
+          aria-invalid={!!error}
+          aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
+          className="input-control"
+          {...props}
+        />
+      )}
       {error ? (
         <small id={`${inputId}-error`} className="error">{error}</small>
       ) : hint ? (
