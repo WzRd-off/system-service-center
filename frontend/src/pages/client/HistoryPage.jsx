@@ -10,7 +10,6 @@ const HISTORY_STATUSES = ['completed', 'delivered', 'cancelled'];
 export function ClientHistoryPage() {
   const { data, loading, error } = useFetch(() => requestsApi.list());
 
-  // Фильтруем только завершенные или отмененные заявки
   const historyRequests = data?.filter(r => HISTORY_STATUSES.includes(r.status)) || [];
 
   return (

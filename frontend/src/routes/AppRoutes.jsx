@@ -32,6 +32,7 @@ import { ServiceHistoryPage } from '../pages/business/ServiceHistoryPage.jsx';
 import { MaintenancePlansPage } from '../pages/business/MaintenancePlansPage.jsx';
 
 import { ProfilePage } from '../pages/ProfilePage.jsx';
+import { NotificationsPage } from '../pages/NotificationsPage.jsx';
 import { NotFoundPage } from '../pages/NotFoundPage.jsx';
 
 export function AppRoutes() {
@@ -42,6 +43,7 @@ export function AppRoutes() {
       <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
 
       <Route path={ROUTES.PROFILE} element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+      <Route path={ROUTES.NOTIFICATIONS} element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
       <Route path={ROUTES.CLIENT.DASHBOARD} element={<ProtectedRoute roles={[ROLES.CLIENT]}><ClientDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.CLIENT.NEW_REQUEST} element={<ProtectedRoute roles={[ROLES.CLIENT]}><NewRequestPage /></ProtectedRoute>} />

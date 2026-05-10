@@ -67,32 +67,34 @@ export function RegisterPage() {
   };
 
   return (
-    <div className="canvas-card canvas-card--auth auth-page">
-      <h2>Реєстрація</h2>
-      <form onSubmit={submit}>
-        <Select label="Роль" name="role" value={form.role} options={roleOptions} onChange={change} />
-        <Input label="Пошта" name="email" type="email" value={form.email} onChange={change} required />
-        <Input label="Телефон" name="phone" type="tel" value={form.phone} onChange={change} />
-        <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required />
-        <Input label="Адреса" name="address" value={form.address} onChange={change} />
-        
-        {isBusiness ? (
-          <>
-            <Input label="Назва компанії" name="companyName" value={form.companyName} onChange={change} required />
-            <Input label="ЄДРПОУ" name="edrpou" value={form.edrpou} onChange={change} required />
-            <Input label="Контактна особа" name="contact_person" value={form.contact_person} onChange={change} required />
-          </>
-        ) : (
-          <>            
-            <Input label="Ім'я" name="firstName" value={form.firstName} onChange={change} />
-            <Input label="Прізвище" name="lastName" value={form.lastName} onChange={change} />
-          </>
-        )}
+    <div className="auth-screen">
+      <div className="canvas-card canvas-card--auth auth-page">
+        <h2>Реєстрація</h2>
+        <form onSubmit={submit}>
+          <Select label="Роль" name="role" value={form.role} options={roleOptions} onChange={change} />
+          <Input label="Пошта" name="email" type="email" value={form.email} onChange={change} required />
+          <Input label="Телефон" name="phone" type="tel" value={form.phone} onChange={change} />
+          <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required />
+          <Input label="Адреса" name="address" value={form.address} onChange={change} />
+          
+          {isBusiness ? (
+            <>
+              <Input label="Назва компанії" name="companyName" value={form.companyName} onChange={change} required />
+              <Input label="ЄДРПОУ" name="edrpou" value={form.edrpou} onChange={change} required />
+              <Input label="Контактна особа" name="contact_person" value={form.contact_person} onChange={change} required />
+            </>
+          ) : (
+            <>            
+              <Input label="Ім'я" name="firstName" value={form.firstName} onChange={change} />
+              <Input label="Прізвище" name="lastName" value={form.lastName} onChange={change} />
+            </>
+          )}
 
-        {error && <p className="error">{error}</p>}
-        <Button type="submit" loading={submitting}>Зареєструватися</Button>
-      </form>
-      <p>Вже маєте акаунт? <Link to={ROUTES.LOGIN}>Увійти</Link></p>
+          {error && <p className="error">{error}</p>}
+          <Button type="submit" loading={submitting}>Зареєструватися</Button>
+        </form>
+        <p>Вже маєте акаунт? <Link to={ROUTES.LOGIN}>Увійти</Link></p>
+      </div>
     </div>
   );
 }

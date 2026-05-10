@@ -1,6 +1,14 @@
 import { db } from '../database/db.js';
 import { generateRequestNumber } from '../utils/helpers.js';
 import { ApiError } from '../utils/ApiError.js';
+import { notificationsService } from './notifications.service.js';
+
+const STATUS_TO_NOTIFICATION = {
+  accepted: 'request_accepted',
+  awaiting_clarification: 'clarification_needed',
+  completed: 'repair_completed',
+  cancelled: 'request_cancelled'
+};
 
 class RequestsService {
   async create({ 
@@ -43,8 +51,12 @@ class RequestsService {
           address || null
         ]
       );
-      
-    return rows[0];
+
+    const created = rows[0];
+    if (created?.id) {
+      await notificationsService.createForRequest(created.id, 'request_created');
+    }
+    return created;
   }
 
   async getById(id) {
@@ -148,6 +160,10 @@ class RequestsService {
       [status, id]
     );
     if (!rows[0]) throw ApiError.notFound('Request not found');
+
+    const notificationType = STATUS_TO_NOTIFICATION[status] || 'status_changed';
+    await notificationsService.createForRequest(id, notificationType);
+
     return rows[0];
   }
 
@@ -159,6 +175,9 @@ class RequestsService {
       [technicianId, 'technician_assigned', id]
     );
     if (!rows[0]) throw ApiError.notFound('Request not found');
+
+    await notificationsService.createForRequest(id, 'technician_assigned');
+
     return rows[0];
   }
 }

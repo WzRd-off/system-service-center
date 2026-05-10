@@ -58,12 +58,7 @@ export const mastersController = {
     const request = await requestsService.getById(requestId);
     if (!request) throw ApiError.notFound('Заявку не знайдено');
 
-    await notificationsService.create({
-      userId: request.client_user_id || request.business_user_id || req.user.id,
-      requestId,
-      type: 'repair_completed',
-      message: `Майстер повідомив про завершення робіт по заявці №${request.request_number}`
-    });
+    await notificationsService.createForRequest(requestId, 'repair_completed');
     res.json({ ok: true });
   })
 };

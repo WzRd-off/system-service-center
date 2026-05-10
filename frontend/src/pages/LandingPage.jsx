@@ -1,37 +1,47 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
+import {
+  ArrowRight,
+  ArrowUp,
+  Building2,
+  Laptop,
+  Printer,
+  Smartphone,
+  Tv,
+  Wifi,
+} from 'lucide-react';
 import { ROUTES } from '../constants/routes.js';
 import { ROLES } from '../constants/roles.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const services = [
   {
-    icon: '💻',
+    icon: Laptop,
     title: 'Ноутбуки і ПК',
     text: 'Чистка, заміна термопасти, апгрейд SSD/RAM, ремонт материнських плат.',
   },
   {
-    icon: '📱',
+    icon: Smartphone,
     title: 'Смартфони і планшети',
     text: 'Заміна екранів, акумуляторів, ремонт після падінь і потрапляння води.',
   },
   {
-    icon: '🖨️',
+    icon: Printer,
     title: 'Принтери і МФУ',
     text: 'Заправка картриджів, ремонт механіки, налаштування мережевого друку.',
   },
   {
-    icon: '🌐',
+    icon: Wifi,
     title: 'Мережеве обладнання',
     text: 'Налаштування Wi-Fi, роутерів, комутаторів і відеоспостереження.',
   },
   {
-    icon: '🔌',
+    icon: Tv,
     title: 'Побутова техніка',
     text: 'Діагностика і ремонт телевізорів, мікрохвильовок, кавомашин і т.д.',
   },
   {
-    icon: '🏢',
+    icon: Building2,
     title: 'Бізнес-обслуговування',
     text: 'Договори, SLA, виїзні майстри, планові ТО і повна звітність.',
   },
@@ -190,7 +200,6 @@ export function LandingPage() {
       <header className={`landing-header ${menuOpen ? 'is-open' : ''}`}>
         <div className="landing-shell landing-header__inner">
           <a href="#hero" className="landing-logo" onClick={closeMenu}>
-            <span className="landing-logo__mark" aria-hidden="true">SC</span>
             <span>System Service Center</span>
           </a>
           <nav className="landing-nav">
@@ -267,13 +276,12 @@ export function LandingPage() {
                 {user ? (
                   <Link to={cabinetRoute} className="btn btn-primary btn-lg landing-cta">
                     Перейти в кабінет
-                    <span className="landing-cta__arrow" aria-hidden="true">→</span>
                   </Link>
                 ) : (
                   <>
                     <Link to={ROUTES.REGISTER} className="btn btn-primary btn-lg landing-cta">
                       Створити акаунт
-                      <span className="landing-cta__arrow" aria-hidden="true">→</span>
+                      <ArrowRight size={18} />
                     </Link>
                     <Link to={ROUTES.LOGIN} className="btn btn-outline btn-lg">Я вже клієнт</Link>
                   </>
@@ -305,18 +313,21 @@ export function LandingPage() {
             </header>
 
             <div className="landing-services">
-              {services.map((s, i) => (
+              {services.map((s, i) => {
+                const ServiceIcon = s.icon;
+                return (
                 <article
                   key={s.title}
                   className="landing-card landing-service"
                   data-reveal
                   style={{ '--i': i }}
                 >
-                  <div className="landing-service__icon" aria-hidden="true">{s.icon}</div>
+                  <div className="landing-service__icon" aria-hidden="true"><ServiceIcon size={40} color="#0066cc" /></div>
                   <h3>{s.title}</h3>
                   <p>{s.text}</p>
                 </article>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>
@@ -465,7 +476,7 @@ export function LandingPage() {
         aria-label="Нагору"
         onClick={scrollTop}
       >
-        ↑
+        <ArrowUp size={24} />
       </button>
     </div>
   );

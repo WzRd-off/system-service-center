@@ -31,15 +31,17 @@ export function LoginPage() {
   };
 
   return (
-    <div className="canvas-card canvas-card--auth auth-page">
-      <h2>Вхід</h2>
-      <form onSubmit={submit}>
-        <Input label="Пошта" name="email" type="email" value={form.email} onChange={change} required />
-        <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required />
-        {error && <p className="error">{error}</p>}
-        <Button type="submit">Увійти</Button>
-      </form>
-      <p>Ще немає акаунта? <Link to={ROUTES.REGISTER}>Зареєструватися</Link></p>
+    <div className="auth-screen">
+      <div className="canvas-card canvas-card--auth auth-page">
+        <h2>Вхід</h2>
+        <form onSubmit={submit}>
+          <Input label="Пошта" name="email" type="email" value={form.email} onChange={change} required />
+          <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required />
+          {error && <p className="error">{error}</p>}
+          <Button type="submit">Увійти</Button>
+        </form>
+        <p>Ще немає акаунта? <Link to={ROUTES.REGISTER}>Зареєструватися</Link></p>
+      </div>
     </div>
   );
 }

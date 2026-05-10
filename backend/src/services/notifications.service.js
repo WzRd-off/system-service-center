@@ -11,12 +11,67 @@ class NotificationsService {
     return rows[0];
   }
 
-  async listForUser(userId) {
+  async createForRequest(requestId, type, extraText = null) {
+    try {
+      const { rows } = await db.query(
+        `SELECT sr.user_id, sr.request_number, sr.status,
+                nt.label AS type_label,
+                rs.label AS status_label
+         FROM service_requests sr
+         LEFT JOIN notification_types nt ON nt.code = $2
+         LEFT JOIN request_statuses rs ON rs.code = sr.status
+         WHERE sr.id = $1`,
+        [requestId, type]
+      );
+      const row = rows[0];
+      if (!row || !row.user_id) return null;
+
+      const baseLabel = row.type_label || type;
+      const tail =
+        type === 'status_changed'
+          ? `: ${row.status_label || row.status}`
+          : extraText
+            ? `: ${extraText}`
+            : '';
+      const message = `Заявка №${row.request_number} — ${baseLabel}${tail}`;
+
+      return await this.create({
+        userId: row.user_id,
+        requestId,
+        type,
+        message
+      });
+    } catch (err) {
+      console.warn('[notifications] createForRequest failed:', err.message);
+      return null;
+    }
+  }
+
+  async listForUser(userId, { onlyUnread = false, limit = 50, offset = 0 } = {}) {
+    const params = [userId];
+    let where = 'n.user_id = $1';
+    if (onlyUnread) where += ' AND n.is_read = FALSE';
+    params.push(limit, offset);
+
     const { rows } = await db.query(
-      'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC',
-      [userId]
+      `SELECT n.*, nt.label AS type_label, sr.request_number
+       FROM notifications n
+       LEFT JOIN notification_types nt ON nt.code = n.type
+       LEFT JOIN service_requests sr ON sr.id = n.request_id
+       WHERE ${where}
+       ORDER BY n.created_at DESC
+       LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params
     );
     return rows;
+  }
+
+  async getUnreadCount(userId) {
+    const { rows } = await db.query(
+      'SELECT COUNT(*)::int AS count FROM notifications WHERE user_id = $1 AND is_read = FALSE',
+      [userId]
+    );
+    return rows[0]?.count ?? 0;
   }
 
   async markAsRead(id, userId) {
@@ -27,6 +82,14 @@ class NotificationsService {
     );
     if (!rows[0]) throw ApiError.notFound('Notification not found');
     return rows[0];
+  }
+
+  async markAllAsRead(userId) {
+    const { rowCount } = await db.query(
+      'UPDATE notifications SET is_read = TRUE WHERE user_id = $1 AND is_read = FALSE',
+      [userId]
+    );
+    return { updated: rowCount };
   }
 
   async remove(id, userId) {

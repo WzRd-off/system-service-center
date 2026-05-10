@@ -13,12 +13,21 @@ export const requestsController = {
   }),
 
   list: asyncHandler(async (req, res) => {
-    const { status, technicianId, limit, offset } = req.query;
+    const { status, technicianId, limit, offset, dateFrom, dateTo, client } = req.query;
+    const normalizeRole = (role) =>
+      String(role || '')
+        .toLowerCase()
+        .replace(/['’`]/g, '')
+        .replace(/[\s_-]+/g, '');
+    const isManager = normalizeRole(req.user?.role) === normalizeRole('Менеджер');
 
     const requests = await requestsService.list({
       status,
       technicianId: technicianId && Number(technicianId),
-      userId: req.user.id,
+      userId: isManager ? undefined : req.user.id,
+      dateFrom,
+      dateTo,
+      client,
       limit: limit ? Number(limit) : undefined,
       offset: offset ? Number(offset) : undefined
     });
