@@ -9,5 +9,6 @@ router.use(authMiddleware, managerMiddleware);
 router.get('/requests-by-status', reportsController.requestsByStatus);
 router.get('/technicians', reportsController.technicianActivity);
 router.get('/business-clients', reportsController.businessClientActivity);
+router.get('/technician-workload', reportsController.technicianWorkload);
 
 export default router;

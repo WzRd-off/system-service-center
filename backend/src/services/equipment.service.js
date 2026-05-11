@@ -20,9 +20,17 @@ class EquipmentService {
 
   async getHistory(deviceId) {
     const { rows } = await db.query(
-      `SELECT sr.*, wr.diagnostic_result, wr.work_description, wr.used_parts
+      `SELECT sr.id, sr.request_number, sr.user_id, sr.device_id, sr.description, sr.status,
+              sr.created_at, sr.updated_at,
+              wr.diagnostic_result, wr.work_description, wr.used_parts
        FROM service_requests sr
-       LEFT JOIN work_reports wr ON wr.request_id = sr.id
+       LEFT JOIN LATERAL (
+         SELECT diagnostic_result, work_description, used_parts
+         FROM work_reports
+         WHERE request_id = sr.id
+         ORDER BY created_at DESC
+         LIMIT 1
+       ) wr ON TRUE
        WHERE sr.device_id = $1
        ORDER BY sr.created_at DESC`,
       [deviceId]

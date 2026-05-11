@@ -4,11 +4,15 @@ import { DeviceForm } from '../../components/equipment/DeviceForm.jsx';
 import { Spinner } from '../../components/common/Spinner.jsx';
 import { ErrorMessage } from '../../components/common/ErrorMessage.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
-import { businessClientsApi } from '../../api/businessClients.api.js';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { equipmentApi } from '../../api/equipment.api.js';
 
-export function CompanyDevicesPage() {
-  const { data, loading, error, reload } = useFetch(() => businessClientsApi.getDevices());
+export function ClientDevicesPage() {
+  const { user } = useAuth();
+  const { data, loading, error, reload } = useFetch(
+    () => (user?.id ? equipmentApi.listByClient(user.id) : Promise.resolve([])),
+    [user?.id]
+  );
 
   const addDevice = async (form) => {
     await equipmentApi.create(form);
@@ -19,7 +23,7 @@ export function CompanyDevicesPage() {
     <Layout>
       <div className="canvas-stack">
         <section className="canvas-card canvas-card--compact">
-          <h2>Техніка компанії</h2>
+          <h2>Моя техніка</h2>
         </section>
         <section className="canvas-card">
           <DeviceForm onSubmit={addDevice} />
@@ -32,7 +36,7 @@ export function CompanyDevicesPage() {
           ) : (
             <DeviceList
               devices={data}
-              getHistoryPath={(deviceId) => `/business/devices/${deviceId}/history`}
+              getHistoryPath={(deviceId) => `/client/devices/${deviceId}/history`}
             />
           )}
         </section>

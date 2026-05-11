@@ -11,19 +11,56 @@ const STATUS_TO_NOTIFICATION = {
 };
 
 class RequestsService {
-  async create({ 
+  async _logStatusChange(requestId, oldStatus, newStatus, changedByUserId) {
+    if (!newStatus || oldStatus === newStatus) return;
+    await db.query(
+      `INSERT INTO request_status_history (request_id, old_status, new_status, changed_by_user_id)
+       VALUES ($1, $2, $3, $4)`,
+      [requestId, oldStatus || null, newStatus, changedByUserId ?? null]
+    );
+  }
+
+  async _loadStatusHistory(requestId) {
+    const { rows } = await db.query(
+      `SELECT h.id, h.old_status, h.new_status, h.changed_by_user_id, h.changed_at,
+              u.email AS changer_email
+       FROM request_status_history h
+       LEFT JOIN users u ON u.id = h.changed_by_user_id
+       WHERE h.request_id = $1
+       ORDER BY h.changed_at ASC`,
+      [requestId]
+    );
+    return rows;
+  }
+
+  async create({
     userId,
-    deviceId, 
-    type, 
-    manufacturer, 
-    model, 
-    serialNumber, 
-    description, 
+    deviceId,
+    type,
+    manufacturer,
+    model,
+    serialNumber,
+    description,
     address,
-    preferredContact, 
-    serviceType 
+    preferredContact,
+    serviceType,
+    clientComment,
+    comment,
+    createdByUserId
   }) {
-    let finalDeviceId = deviceId;
+    const extraComment = clientComment ?? comment ?? null;
+    let finalDeviceId = deviceId ? Number(deviceId) : null;
+
+    if (finalDeviceId) {
+      const { rows: devRows } = await db.query(
+        'SELECT user_id FROM devices WHERE id = $1',
+        [finalDeviceId]
+      );
+      if (!devRows[0]) throw ApiError.badRequest('Техніку не знайдено');
+      if (Number(devRows[0].user_id) !== Number(userId)) {
+        throw ApiError.badRequest('Техніка не належить обраному клієнту');
+      }
+    }
 
     if (!finalDeviceId && type) {
       const { rows: deviceRows } = await db.query(
@@ -36,30 +73,34 @@ class RequestsService {
 
     const requestNumber = generateRequestNumber();
     const { rows } = await db.query(
-        `INSERT INTO service_requests
-          (request_number, user_id, device_id, description, status, preferred_contact, service_type, service_address)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-        RETURNING *`,
-        [
-          requestNumber, 
-          userId, 
-          finalDeviceId, 
-          description, 
-          'new_request', 
-          preferredContact, 
-          serviceType || null,
-          address || null
-        ]
-      );
+      `INSERT INTO service_requests
+        (request_number, user_id, device_id, description, status, preferred_contact, service_type, service_address, client_comment)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING *`,
+      [
+        requestNumber,
+        userId,
+        finalDeviceId,
+        description,
+        'new_request',
+        preferredContact,
+        serviceType || null,
+        address || null,
+        extraComment
+      ]
+    );
 
     const created = rows[0];
     if (created?.id) {
+      await this._logStatusChange(created.id, null, 'new_request', createdByUserId ?? userId);
       await notificationsService.createForRequest(created.id, 'request_created');
+      await notificationsService.notifyManagersForRequest(created.id, 'request_created');
     }
     return created;
   }
 
-  async getById(id) {
+  async getById(id, options = {}) {
+    const { includeStatusHistory = true } = options;
     const { rows } = await db.query(
       `SELECT sr.*,
               cp.user_id  AS client_user_id,
@@ -97,6 +138,10 @@ class RequestsService {
         work_description: r.work_description,
         used_parts: r.used_parts,
       };
+    }
+    r.comment = r.client_comment ?? null;
+    if (includeStatusHistory) {
+      r.status_history = await this._loadStatusHistory(id);
     }
     return r;
   }
@@ -143,17 +188,20 @@ class RequestsService {
        LEFT JOIN users u_cp ON u_cp.id = cp.user_id
        LEFT JOIN business_client_profiles bcp ON bcp.user_id = sr.user_id
        LEFT JOIN users u_bc ON u_bc.id = bcp.user_id
-       LEFT JOIN technician_profiles tp ON tp.id = sr.assigned_technician_id  
+       LEFT JOIN technician_profiles tp ON tp.id = sr.assigned_technician_id
        ${where}
        ORDER BY sr.created_at DESC
-       LIMIT $${params.length - 1} OFFSET $${params.length}
-       `,
+       LIMIT $${params.length - 1} OFFSET $${params.length}`,
       params
     );
     return rows;
   }
 
-  async updateStatus(id, status) {
+  async updateStatus(id, status, { changedByUserId } = {}) {
+    const { rows: cur } = await db.query('SELECT status FROM service_requests WHERE id = $1', [id]);
+    if (!cur[0]) throw ApiError.notFound('Request not found');
+    const oldStatus = cur[0].status;
+
     const { rows } = await db.query(
       `UPDATE service_requests SET status = $1, updated_at = NOW()
        WHERE id = $2 RETURNING *`,
@@ -161,23 +209,105 @@ class RequestsService {
     );
     if (!rows[0]) throw ApiError.notFound('Request not found');
 
+    await this._logStatusChange(id, oldStatus, status, changedByUserId);
+
     const notificationType = STATUS_TO_NOTIFICATION[status] || 'status_changed';
     await notificationsService.createForRequest(id, notificationType);
 
     return rows[0];
   }
 
-  async assignTechnician(id, technicianId) {
+  async assignTechnician(id, technicianId, { changedByUserId } = {}) {
+    const { rows: cur } = await db.query(
+      'SELECT status FROM service_requests WHERE id = $1',
+      [id]
+    );
+    if (!cur[0]) throw ApiError.notFound('Request not found');
+    const oldStatus = cur[0].status;
+    const newStatus = 'technician_assigned';
+
     const { rows } = await db.query(
       `UPDATE service_requests
        SET assigned_technician_id = $1, status = $2, updated_at = NOW()
        WHERE id = $3 RETURNING *`,
-      [technicianId, 'technician_assigned', id]
+      [technicianId, newStatus, id]
     );
     if (!rows[0]) throw ApiError.notFound('Request not found');
 
+    await this._logStatusChange(id, oldStatus, newStatus, changedByUserId);
+
     await notificationsService.createForRequest(id, 'technician_assigned');
 
+    const { rows: techRows } = await db.query(
+      'SELECT user_id FROM technician_profiles WHERE id = $1',
+      [technicianId]
+    );
+    const techUserId = techRows[0]?.user_id;
+    if (techUserId) {
+      await notificationsService.createForUserId(techUserId, id, 'technician_assigned');
+    }
+
+    return rows[0];
+  }
+
+  async updateDetails(id, payload) {
+    const { rows: srRows } = await db.query(
+      'SELECT user_id FROM service_requests WHERE id = $1',
+      [id]
+    );
+    if (!srRows[0]) throw ApiError.notFound('Request not found');
+    const ownerId = srRows[0].user_id;
+
+    const {
+      description,
+      preferred_contact,
+      service_type,
+      service_address,
+      client_comment,
+      device_id: deviceId
+    } = payload;
+
+    const sets = [];
+    const values = [];
+
+    const add = (col, val) => {
+      values.push(val);
+      sets.push(`${col} = $${values.length}`);
+    };
+
+    if (description !== undefined) add('description', description);
+    if (preferred_contact !== undefined) add('preferred_contact', preferred_contact);
+    if (service_type !== undefined) add('service_type', service_type);
+    if (service_address !== undefined) add('service_address', service_address);
+    if (client_comment !== undefined) add('client_comment', client_comment);
+
+    if (deviceId !== undefined) {
+      if (deviceId === null || deviceId === '') {
+        add('device_id', null);
+      } else {
+        const did = Number(deviceId);
+        const { rows: dRows } = await db.query(
+          'SELECT user_id FROM devices WHERE id = $1',
+          [did]
+        );
+        if (!dRows[0]) throw ApiError.badRequest('Техніку не знайдено');
+        if (Number(dRows[0].user_id) !== Number(ownerId)) {
+          throw ApiError.badRequest('Техніка не належить клієнту заявки');
+        }
+        add('device_id', did);
+      }
+    }
+
+    if (sets.length === 0) {
+      return this.getById(id, { includeStatusHistory: false });
+    }
+
+    values.push(id);
+    const { rows } = await db.query(
+      `UPDATE service_requests SET ${sets.join(', ')}, updated_at = NOW()
+       WHERE id = $${values.length} RETURNING *`,
+      values
+    );
     return rows[0];
   }
 }

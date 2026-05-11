@@ -11,32 +11,73 @@ class NotificationsService {
     return rows[0];
   }
 
+  async _buildRequestMessage(requestId, type, extraText = null) {
+    const { rows } = await db.query(
+      `SELECT sr.request_number, sr.status,
+              nt.label AS type_label,
+              rs.label AS status_label
+       FROM service_requests sr
+       LEFT JOIN notification_types nt ON nt.code = $2
+       LEFT JOIN request_statuses rs ON rs.code = sr.status
+       WHERE sr.id = $1`,
+      [requestId, type]
+    );
+    const row = rows[0];
+    if (!row) return null;
+    const baseLabel = row.type_label || type;
+    const tail =
+      type === 'status_changed'
+        ? `: ${row.status_label || row.status}`
+        : extraText
+          ? `: ${extraText}`
+          : '';
+    return `Заявка №${row.request_number} — ${baseLabel}${tail}`;
+  }
+
+  async createForUserId(userId, requestId, type, extraText = null) {
+    if (!userId) return null;
+    try {
+      const message = await this._buildRequestMessage(requestId, type, extraText);
+      if (!message) return null;
+      return await this.create({ userId, requestId, type, message });
+    } catch (err) {
+      console.warn('[notifications] createForUserId failed:', err.message);
+      return null;
+    }
+  }
+
+  async notifyManagersForRequest(requestId, type, extraText = null) {
+    const { rows: managers } = await db.query(
+      `SELECT id FROM users WHERE role = $1`,
+      ['Менеджер']
+    );
+    if (!managers.length) return [];
+
+    const message = await this._buildRequestMessage(requestId, type, extraText);
+    if (!message) return [];
+
+    const created = [];
+    for (const m of managers) {
+      const n = await this.create({
+        userId: m.id,
+        requestId,
+        type,
+        message
+      });
+      created.push(n);
+    }
+    return created;
+  }
+
   async createForRequest(requestId, type, extraText = null) {
     try {
-      const { rows } = await db.query(
-        `SELECT sr.user_id, sr.request_number, sr.status,
-                nt.label AS type_label,
-                rs.label AS status_label
-         FROM service_requests sr
-         LEFT JOIN notification_types nt ON nt.code = $2
-         LEFT JOIN request_statuses rs ON rs.code = sr.status
-         WHERE sr.id = $1`,
-        [requestId, type]
-      );
-      const row = rows[0];
-      if (!row || !row.user_id) return null;
-
-      const baseLabel = row.type_label || type;
-      const tail =
-        type === 'status_changed'
-          ? `: ${row.status_label || row.status}`
-          : extraText
-            ? `: ${extraText}`
-            : '';
-      const message = `Заявка №${row.request_number} — ${baseLabel}${tail}`;
-
+      const { rows } = await db.query('SELECT user_id FROM service_requests WHERE id = $1', [requestId]);
+      const ownerId = rows[0]?.user_id;
+      if (!ownerId) return null;
+      const message = await this._buildRequestMessage(requestId, type, extraText);
+      if (!message) return null;
       return await this.create({
-        userId: row.user_id,
+        userId: ownerId,
         requestId,
         type,
         message

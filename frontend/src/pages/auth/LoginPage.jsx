@@ -16,7 +16,7 @@ const ROLE_HOME = {
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ login: '', password: '' });
   const [error, setError] = useState(null);
 
   const change = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
@@ -35,7 +35,7 @@ export function LoginPage() {
       <div className="canvas-card canvas-card--auth auth-page">
         <h2>Вхід</h2>
         <form onSubmit={submit}>
-          <Input label="Пошта" name="email" type="email" value={form.email} onChange={change} required />
+          <Input label="Пошта або телефон" name="login" type="text" value={form.login} onChange={change} required autoComplete="username" />
           <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required />
           {error && <p className="error">{error}</p>}
           <Button type="submit">Увійти</Button>

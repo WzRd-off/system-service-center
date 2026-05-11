@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout.jsx';
 import { Spinner } from '../../components/common/Spinner.jsx';
 import { RequestStatus } from '../../components/requests/RequestStatus.jsx';
@@ -7,11 +7,13 @@ import { CommentList } from '../../components/comments/CommentList.jsx';
 import { CommentForm } from '../../components/comments/CommentForm.jsx';
 import { Select } from '../../components/common/Select.jsx';
 import { Button } from '../../components/common/Button.jsx';
+import { Input } from '../../components/common/Input.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
 import { requestsApi } from '../../api/requests.api.js';
 import { commentsApi } from '../../api/comments.api.js';
 import { mastersApi } from '../../api/masters.api.js';
 import { STATUS_LABELS } from '../../constants/statuses.js';
+import { SERVICE_TYPE_LABELS } from '../../constants/serviceTypes.js';
 import { formatDateTime } from '../../utils/formatters.js';
 
 const statusOptions = Object.entries(STATUS_LABELS).map(([value, label]) => ({
@@ -19,34 +21,100 @@ const statusOptions = Object.entries(STATUS_LABELS).map(([value, label]) => ({
   label,
 }));
 
-export function ManagerRequestDetailsPage() {
-  const { id } = useParams();
-  const request = useFetch(() => requestsApi.getById(id), [id]);
+const serviceTypeOptions = [
+  { value: '', label: '— не вказано —' },
+  ...Object.entries(SERVICE_TYPE_LABELS).map(([value, label]) => ({ value, label })),
+];
+
+const contactOptions = [
+  { value: 'phone', label: 'Телефон' },
+  { value: 'email', label: 'Email' },
+  { value: 'messenger', label: 'Месенджер' },
+];
+
+function buildEditState(r) {
+  return {
+    description: r.description || '',
+    preferred_contact: r.preferred_contact || 'phone',
+    service_type: r.service_type || '',
+    service_address: r.address || '',
+    client_comment: r.comment || '',
+  };
+}
+
+function ClientOtherRequestsSection({ clientUserId, currentRequestId }) {
+  const { data, loading, error } = useFetch(
+    () => requestsApi.list({ clientUserId, limit: 25 }),
+    [clientUserId]
+  );
+  if (!clientUserId) return null;
+  const rows = (data || []).filter((x) => String(x.id) !== String(currentRequestId));
+  return (
+    <section className="canvas-card">
+      <h3>Інші заявки клієнта</h3>
+      {loading ? (
+        <Spinner />
+      ) : error ? (
+        <p>Не вдалося завантажити список</p>
+      ) : rows.length === 0 ? (
+        <p>Інших заявок немає</p>
+      ) : (
+        <ul className="analytics-list">
+          {rows.map((row) => (
+            <li key={row.id}>
+              <Link to={`/manager/requests/${row.id}`}>№ {row.request_number}</Link>
+              {' — '}
+              {STATUS_LABELS[row.status] || row.status}
+              {' — '}
+              {formatDateTime(row.created_at)}
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function ManagerRequestDetailsBody({ r, id, onRequestReload }) {
   const comments = useFetch(() => commentsApi.listByRequest(id), [id]);
   const technicians = useFetch(() => mastersApi.list(), []);
   const [technicianId, setTechnicianId] = useState('');
-
-  if (request.loading) return <Layout><Spinner /></Layout>;
-  if (!request.data) return <Layout><p>Заявку не знайдено</p></Layout>;
-
-  const r = request.data;
+  const [edit, setEdit] = useState(() => buildEditState(r));
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const updateStatus = async (status) => {
     await requestsApi.updateStatus(id, status);
-    request.reload();
+    onRequestReload();
   };
 
   const assign = async (e) => {
     e.preventDefault();
     if (!technicianId) return;
     await requestsApi.assignTechnician(id, Number(technicianId));
-    setTechnicianId(''); 
-    request.reload();
+    setTechnicianId('');
+    onRequestReload();
   };
 
   const sendComment = async (text) => {
     await commentsApi.create({ requestId: Number(id), text });
     comments.reload();
+  };
+
+  const saveEdit = async (e) => {
+    e.preventDefault();
+    setSavingEdit(true);
+    try {
+      await requestsApi.update(id, {
+        description: edit.description,
+        preferred_contact: edit.preferred_contact || null,
+        service_type: edit.service_type || null,
+        service_address: edit.service_address || null,
+        client_comment: edit.client_comment || null,
+      });
+      await onRequestReload();
+    } finally {
+      setSavingEdit(false);
+    }
   };
 
   const technicianOptions = [
@@ -58,8 +126,7 @@ export function ManagerRequestDetailsPage() {
   ];
 
   return (
-    <Layout>
-      <div className="canvas-stack">
+    <div className="canvas-stack">
       <section className="canvas-card canvas-card--compact">
         <h2>Заявка № {r.request_number}</h2>
         <RequestStatus status={r.status} />
@@ -82,7 +149,12 @@ export function ManagerRequestDetailsPage() {
           <dd>{[r.manufacturer, r.model].filter(Boolean).join(' ') || '—'}</dd>
           <dt>Серійний номер</dt><dd>{r.serial_number || '—'}</dd>
           {r.address && (<><dt>Адреса об'єкта</dt><dd>{r.address}</dd></>)}
-          {r.service_type && (<><dt>Тип обслуговування</dt><dd>{r.service_type}</dd></>)}
+          {r.service_type && (
+            <>
+              <dt>Тип обслуговування</dt>
+              <dd>{SERVICE_TYPE_LABELS[r.service_type] || r.service_type}</dd>
+            </>
+          )}
           <dt>Опис проблеми</dt><dd>{r.description}</dd>
           {r.comment && (<><dt>Коментар клієнта</dt><dd>{r.comment}</dd></>)}
           <dt>Призначений майстер</dt>
@@ -91,6 +163,64 @@ export function ManagerRequestDetailsPage() {
           </dd>
         </dl>
       </section>
+
+      <section className="canvas-card">
+        <h3>Редагування заявки</h3>
+        <form onSubmit={saveEdit} className="section-stack">
+          <Input
+            type="textarea"
+            label="Опис проблеми"
+            name="description"
+            value={edit.description}
+            onChange={(e) => setEdit({ ...edit, description: e.target.value })}
+            required
+          />
+          <Select
+            label="Бажаний спосіб зв'язку"
+            name="preferred_contact"
+            value={edit.preferred_contact}
+            options={contactOptions}
+            onChange={(e) => setEdit({ ...edit, preferred_contact: e.target.value })}
+          />
+          <Select
+            label="Тип обслуговування"
+            name="service_type"
+            value={edit.service_type}
+            options={serviceTypeOptions}
+            onChange={(e) => setEdit({ ...edit, service_type: e.target.value })}
+          />
+          <Input
+            label="Адреса об'єкта / обслуговування"
+            name="service_address"
+            value={edit.service_address}
+            onChange={(e) => setEdit({ ...edit, service_address: e.target.value })}
+          />
+          <Input
+            type="textarea"
+            label="Коментар клієнта"
+            name="client_comment"
+            value={edit.client_comment}
+            onChange={(e) => setEdit({ ...edit, client_comment: e.target.value })}
+          />
+          <Button type="submit" loading={savingEdit}>Зберегти зміни</Button>
+        </form>
+      </section>
+
+      {(r.status_history || []).length > 0 && (
+        <section className="canvas-card">
+          <h3>Історія змін статусу</h3>
+          <ul className="analytics-list">
+            {(r.status_history || []).map((h) => (
+              <li key={h.id}>
+                {formatDateTime(h.changed_at)}:{' '}
+                {h.old_status ? STATUS_LABELS[h.old_status] || h.old_status : '—'} →{' '}
+                {STATUS_LABELS[h.new_status] || h.new_status}
+                {h.changer_email ? ` (${h.changer_email})` : ''}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="canvas-card">
         <h3>Зміна статусу</h3>
@@ -140,12 +270,33 @@ export function ManagerRequestDetailsPage() {
         </section>
       )}
 
+      <ClientOtherRequestsSection clientUserId={r.user_id} currentRequestId={id} />
+
       <section className="canvas-card">
         <h3>Коментарі</h3>
         <CommentList comments={comments.data || []} />
         <CommentForm onSubmit={sendComment} />
       </section>
-      </div>
+    </div>
+  );
+}
+
+export function ManagerRequestDetailsPage() {
+  const { id } = useParams();
+  const request = useFetch(() => requestsApi.getById(id), [id]);
+  const r = request.data;
+
+  if (request.loading) return <Layout><Spinner /></Layout>;
+  if (!r) return <Layout><p>Заявку не знайдено</p></Layout>;
+
+  return (
+    <Layout>
+      <ManagerRequestDetailsBody
+        key={`${r.id}-${r.updated_at || ''}`}
+        r={r}
+        id={id}
+        onRequestReload={request.reload}
+      />
     </Layout>
   );
 }

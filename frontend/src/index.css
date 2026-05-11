@@ -2226,4 +2226,85 @@
     .landing-map,
     .landing-map iframe { min-height: 280px; }
   }
+
+  /* Manager: searchable client picker (large user lists) */
+  .client-user-search {
+    position: relative;
+    z-index: 2;
+  }
+  .client-user-search--selected {
+    margin-bottom: 0.25rem;
+  }
+  .client-user-search__picked {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    margin-top: 0.35rem;
+    background: var(--color-primary-soft, #eff6ff);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius, 8px);
+  }
+  .client-user-search__picked-main {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+  }
+  .client-user-search__picked-main strong {
+    font-size: 0.95rem;
+    word-break: break-word;
+  }
+  .client-user-search__meta,
+  .client-user-search__option-meta {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+  }
+  .client-user-search__panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    max-height: min(320px, 50vh);
+    overflow-y: auto;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+  }
+  .client-user-search__status {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: var(--color-muted);
+  }
+  .client-user-search__option {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.15rem;
+    width: 100%;
+    padding: 0.65rem 1rem;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    color: var(--color-text);
+    transition: background var(--transition-fast);
+  }
+  .client-user-search__option:last-child {
+    border-bottom: none;
+  }
+  .client-user-search__option:hover,
+  .client-user-search__option:focus-visible {
+    background: var(--color-hover);
+    outline: none;
+  }
+  .client-user-search__option-title {
+    font-size: 0.9rem;
+    word-break: break-word;
+  }
   

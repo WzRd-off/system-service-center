@@ -5,6 +5,10 @@ import { authService } from '../services/auth.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { requireFields, isEmail, isStrongPassword } from '../utils/validation.js';
 import { ApiError } from '../utils/ApiError.js';
+import {
+  assertCanAccessRequest,
+  getTechnicianProfileIdByUserId,
+} from '../services/requestAccess.service.js';
 
 const TECHNICIAN_ROLE = 'Майстер';
 
@@ -39,13 +43,24 @@ export const mastersController = {
 
   updateRequestStatus: asyncHandler(async (req, res) => {
     requireFields(req.body, ['status']);
-    const request = await requestsService.updateStatus(Number(req.params.id), req.body.status);
-    res.json(request);
+    const id = Number(req.params.id);
+    const profile = await mastersService.getProfileByUserId(req.user.id);
+    const request = await requestsService.getById(id, { includeStatusHistory: false });
+    assertCanAccessRequest(request, req.user, profile.id);
+
+    const updated = await requestsService.updateStatus(id, req.body.status, {
+      changedByUserId: req.user.id
+    });
+    res.json(updated);
   }),
 
   addWorkReport: asyncHandler(async (req, res) => {
     requireFields(req.body, ['requestId']);
+    const requestId = Number(req.body.requestId);
     const profile = await mastersService.getProfileByUserId(req.user.id);
+    const request = await requestsService.getById(requestId, { includeStatusHistory: false });
+    assertCanAccessRequest(request, req.user, profile.id);
+
     const report = await mastersService.addWorkReport({
       ...req.body,
       technicianId: profile.id
@@ -55,10 +70,11 @@ export const mastersController = {
 
   notifyCompletion: asyncHandler(async (req, res) => {
     const requestId = Number(req.params.id);
-    const request = await requestsService.getById(requestId);
-    if (!request) throw ApiError.notFound('Заявку не знайдено');
+    const profile = await mastersService.getProfileByUserId(req.user.id);
+    const request = await requestsService.getById(requestId, { includeStatusHistory: false });
+    assertCanAccessRequest(request, req.user, profile.id);
 
-    await notificationsService.createForRequest(requestId, 'repair_completed');
+    await notificationsService.notifyManagersForRequest(requestId, 'repair_completed');
     res.json({ ok: true });
   })
 };

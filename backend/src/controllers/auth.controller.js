@@ -23,8 +23,14 @@ export const authController = {
   }),
 
   login: asyncHandler(async (req, res) => {
-    requireFields(req.body, ['email', 'password']);
-    const { token, user } = await authService.login(req.body);
+    const login = (req.body.login ?? req.body.email ?? '').trim();
+    if (!login || !req.body.password) {
+      throw ApiError.badRequest('Вкажіть логін і пароль');
+    }
+    const { token, user } = await authService.login({
+      login,
+      password: req.body.password
+    });
     res.cookie('token', token, cookieOptions).json(user);
   }),
 

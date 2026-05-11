@@ -12,9 +12,12 @@ import { NewRequestPage } from '../pages/client/NewRequestPage.jsx';
 import { MyRequestsPage } from '../pages/client/MyRequestsPage.jsx';
 import { ClientRequestDetailsPage } from '../pages/client/RequestDetailsPage.jsx';
 import { ClientHistoryPage } from '../pages/client/HistoryPage.jsx';
+import { ClientDevicesPage } from '../pages/client/ClientDevicesPage.jsx';
+import { DeviceHistoryPage } from '../pages/equipment/DeviceHistoryPage.jsx';
 
 import { ManagerDashboard } from '../pages/manager/ManagerDashboard.jsx';
 import { AllRequestsPage } from '../pages/manager/AllRequestsPage.jsx';
+import { ManagerNewRequestPage } from '../pages/manager/NewRequestPage.jsx';
 import { ManagerRequestDetailsPage } from '../pages/manager/RequestDetailsPage.jsx';
 import { BusinessClientsPage } from '../pages/manager/BusinessClientsPage.jsx';
 import { CreateMasterPage } from '../pages/manager/CreateMasterPage.jsx';
@@ -50,8 +53,11 @@ export function AppRoutes() {
       <Route path={ROUTES.CLIENT.REQUESTS} element={<ProtectedRoute roles={[ROLES.CLIENT]}><MyRequestsPage /></ProtectedRoute>} />
       <Route path={ROUTES.CLIENT.REQUEST_DETAILS} element={<ProtectedRoute roles={[ROLES.CLIENT]}><ClientRequestDetailsPage /></ProtectedRoute>} />
       <Route path={ROUTES.CLIENT.HISTORY} element={<ProtectedRoute roles={[ROLES.CLIENT]}><ClientHistoryPage /></ProtectedRoute>} />
+      <Route path={ROUTES.CLIENT.DEVICES} element={<ProtectedRoute roles={[ROLES.CLIENT]}><ClientDevicesPage /></ProtectedRoute>} />
+      <Route path={ROUTES.CLIENT.DEVICE_HISTORY} element={<ProtectedRoute roles={[ROLES.CLIENT]}><DeviceHistoryPage /></ProtectedRoute>} />
 
       <Route path={ROUTES.MANAGER.DASHBOARD} element={<ProtectedRoute roles={[ROLES.MANAGER]}><ManagerDashboard /></ProtectedRoute>} />
+      <Route path={ROUTES.MANAGER.NEW_REQUEST} element={<ProtectedRoute roles={[ROLES.MANAGER]}><ManagerNewRequestPage /></ProtectedRoute>} />
       <Route path={ROUTES.MANAGER.REQUESTS} element={<ProtectedRoute roles={[ROLES.MANAGER]}><AllRequestsPage /></ProtectedRoute>} />
       <Route path={ROUTES.MANAGER.REQUEST_DETAILS} element={<ProtectedRoute roles={[ROLES.MANAGER]}><ManagerRequestDetailsPage /></ProtectedRoute>} />
       <Route path={ROUTES.MANAGER.BUSINESS_CLIENTS} element={<ProtectedRoute roles={[ROLES.MANAGER]}><BusinessClientsPage /></ProtectedRoute>} />
@@ -65,6 +71,7 @@ export function AppRoutes() {
       <Route path={ROUTES.BUSINESS.DASHBOARD} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><BusinessDashboard /></ProtectedRoute>} />
       <Route path={ROUTES.BUSINESS.PROFILE} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><CompanyProfilePage /></ProtectedRoute>} />
       <Route path={ROUTES.BUSINESS.DEVICES} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><CompanyDevicesPage /></ProtectedRoute>} />
+      <Route path={ROUTES.BUSINESS.DEVICE_HISTORY} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><DeviceHistoryPage /></ProtectedRoute>} />
       <Route path={ROUTES.BUSINESS.NEW_REQUEST} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><BusinessNewRequestPage /></ProtectedRoute>} />
       <Route path={ROUTES.BUSINESS.HISTORY} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><ServiceHistoryPage /></ProtectedRoute>} />
       <Route path={ROUTES.BUSINESS.REQUEST_DETAILS} element={<ProtectedRoute roles={[ROLES.BUSINESS_CLIENT]}><ClientRequestDetailsPage /></ProtectedRoute>} />

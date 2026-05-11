@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BarChart3, Building2, List, Wrench } from 'lucide-react';
+import { BarChart3, Building2, List, Plus, Wrench } from 'lucide-react';
 import { Layout } from '../../components/layout/Layout.jsx';
 import { ROUTES } from '../../constants/routes.js';
 
@@ -12,6 +12,16 @@ export function ManagerDashboard() {
           <p className="hint">Координуйте обробку заявок, майстрів і бізнес-клієнтів в єдиному просторі.</p>
         </section>
         <div className="canvas-grid">
+          <Link to={ROUTES.MANAGER.NEW_REQUEST} className="action-tile">
+            <span className="action-tile-icon">
+              <Plus color="#0066cc" size={32} />
+            </span>
+            <h3 className="action-tile-title">Нова заявка</h3>
+            <p className="action-tile-text">Створити звернення від імені клієнта.</p>
+            <div className="action-tile-footer">
+              <span className="btn btn-outline btn-sm">Створити</span>
+            </div>
+          </Link>
           <Link to={ROUTES.MANAGER.REQUESTS} className="action-tile">
             <span className="action-tile-icon">
               <List color="#0066cc" size={32} />

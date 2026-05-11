@@ -58,6 +58,67 @@ class UsersService {
     return rows[0];
   }
 
+  async listOrderableClients({ search = '', limit = 30 } = {}) {
+    const lim = Math.min(Math.max(Number(limit) || 30, 1), 50);
+    const q = String(search || '').trim();
+    const isIdQuery = /^\d+$/.test(q);
+
+    if (!q) {
+      return [];
+    }
+    if (!isIdQuery && q.length < 2) {
+      return [];
+    }
+
+    const params = [ROLE.CLIENT, ROLE.BUSINESS];
+    let whereExtra = '';
+
+    if (isIdQuery) {
+      params.push(Number(q));
+      whereExtra = ` AND u.id = $${params.length}`;
+    } else {
+      params.push(`%${q}%`);
+      const i = params.length;
+      whereExtra = ` AND (
+        u.email ILIKE $${i}
+        OR u.phone ILIKE $${i}
+        OR cp.first_name ILIKE $${i}
+        OR cp.last_name ILIKE $${i}
+        OR TRIM(CONCAT_WS(' ', cp.first_name, cp.last_name)) ILIKE $${i}
+        OR bcp.company_name ILIKE $${i}
+        OR bcp.contact_person ILIKE $${i}
+      )`;
+    }
+
+    params.push(lim);
+    const limIdx = params.length;
+
+    const { rows } = await db.query(
+      `SELECT u.id, u.email, u.phone, u.role,
+              TRIM(CONCAT_WS(' ', cp.first_name, cp.last_name)) AS person_name,
+              bcp.company_name,
+              bcp.contact_person
+       FROM users u
+       LEFT JOIN client_profiles cp ON cp.user_id = u.id
+       LEFT JOIN business_client_profiles bcp ON bcp.user_id = u.id
+       WHERE u.role IN ($1, $2) ${whereExtra}
+       ORDER BY COALESCE(bcp.company_name, cp.last_name, u.email) NULLS LAST
+       LIMIT $${limIdx}`,
+      params
+    );
+    return rows.map((r) => ({
+      id: r.id,
+      email: r.email,
+      phone: r.phone,
+      role: r.role,
+      contact_person: r.contact_person || null,
+      label:
+        r.role === ROLE.BUSINESS
+          ? `${r.company_name || 'Компанія'} (${r.email})`
+          : `${r.person_name?.trim() || 'Клієнт'} (${r.email})`
+    }));
+  }
+
   async updateProfile(userId, data) {
     const { rows: userRows } = await db.query(
       `SELECT id, role FROM users WHERE id = $1`,

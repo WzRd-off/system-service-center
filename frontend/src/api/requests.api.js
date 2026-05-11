@@ -7,6 +7,7 @@ export const requestsApi = {
   },
   getById: (id) => api.get(`/requests/${id}`),
   create: (data) => api.post('/requests', data),
+  update: (id, data) => api.patch(`/requests/${id}`, data),
   updateStatus: (id, status) => api.patch(`/requests/${id}/status`, { status }),
   assignTechnician: (id, technicianId) => api.patch(`/requests/${id}/assign`, { technicianId })
 };
