@@ -37,18 +37,23 @@ const serviceTypeOptions = [
 export function RequestForm({
   onSubmit,
   businessFields = false,
+  equipmentSelect = false,
   devices = [],
   businessContactPerson,
 }) {
+  const showDevicePicker =
+    devices.length > 0 && (businessFields || equipmentSelect);
+
   const [form, setForm] = useState(() => ({
     ...INITIAL,
     ...(businessFields ? BUSINESS_INITIAL : {}),
+    ...(!businessFields && equipmentSelect ? { deviceId: '' } : {}),
   }));
 
   const change = (e) => {
     const { name, value } = e.target;
     setForm((f) => {
-      if (name === 'deviceId' && businessFields) {
+      if (name === 'deviceId' && (businessFields || equipmentSelect)) {
         const next = { ...f, deviceId: value };
         if (!value) {
           return { ...next, type: '', manufacturer: '', model: '', serialNumber: '' };
@@ -84,10 +89,14 @@ export function RequestForm({
       <div className="form-section">
         <h3 className="section-title">Інформація про техніку</h3>
 
-        {businessFields && devices.length > 0 && (
+        {showDevicePicker && (
           <div className="request-form-device-select">
             <Select
-              label="Техніка зі списку компанії"
+              label={
+                businessFields
+                  ? 'Техніка зі списку компанії'
+                  : 'Техніка з мого списку'
+              }
               name="deviceId"
               value={form.deviceId}
               options={deviceOptions}
