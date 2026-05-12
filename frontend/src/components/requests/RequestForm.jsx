@@ -45,7 +45,29 @@ export function RequestForm({
     ...(businessFields ? BUSINESS_INITIAL : {}),
   }));
 
-  const change = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const change = (e) => {
+    const { name, value } = e.target;
+    setForm((f) => {
+      if (name === 'deviceId' && businessFields) {
+        const next = { ...f, deviceId: value };
+        if (!value) {
+          return { ...next, type: '', manufacturer: '', model: '', serialNumber: '' };
+        }
+        const d = devices.find((x) => String(x.id) === value);
+        if (d) {
+          return {
+            ...next,
+            type: d.type || '',
+            manufacturer: d.manufacturer || '',
+            model: d.model || '',
+            serialNumber: d.serial_number || '',
+          };
+        }
+        return next;
+      }
+      return { ...f, [name]: value };
+    });
+  };
 
   const submit = (e) => {
     e.preventDefault();
@@ -71,7 +93,7 @@ export function RequestForm({
               options={deviceOptions}
               placeholder="— оберіть пристрій або заповніть поля нижче —"
               onChange={change}
-              hint="Якщо обрано — поля виробника/моделі можна не заповнювати"
+              hint="Після вибору поля нижче заповняться автоматично; їх можна змінити вручну"
             />
           </div>
         )}

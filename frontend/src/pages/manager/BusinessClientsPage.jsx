@@ -1,8 +1,9 @@
-  import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Layout } from '../../components/layout/Layout.jsx';
 import { Spinner } from '../../components/common/Spinner.jsx';
 import { Modal } from '../../components/common/Modal.jsx';
 import { Button } from '../../components/common/Button.jsx';
+import { PaginationBar, PAGE_SIZE } from '../../components/common/PaginationBar.jsx';
 import { Input } from '../../components/common/Input.jsx';
 import { Select } from '../../components/common/Select.jsx';
 import { DeviceList } from '../../components/equipment/DeviceList.jsx';
@@ -15,6 +16,7 @@ export function BusinessClientsPage() {
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState('company_name');
   const [sortDirection, setSortDirection] = useState('asc');
+  const [page, setPage] = useState(0);
   const devices = useFetch(
     () => (selectedId ? businessClientsApi.getDevicesById(selectedId) : Promise.resolve([])),
     [selectedId]
@@ -54,6 +56,15 @@ export function BusinessClientsPage() {
       return sortDirection === 'asc' ? cmp : -cmp;
     });
   }, [clients.data, search, sortField, sortDirection]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [search, sortField, sortDirection]);
+
+  const pagedClients = useMemo(() => {
+    const start = page * PAGE_SIZE;
+    return visibleClients.slice(start, start + PAGE_SIZE);
+  }, [visibleClients, page]);
 
   const selected = clients.data?.find((c) => c.id === selectedId);
 
@@ -113,7 +124,7 @@ export function BusinessClientsPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleClients.map((c) => (
+                    {pagedClients.map((c) => (
                       <tr key={c.id}>
                         <td>{c.company_name}</td>
                         <td>{c.edrpou || '—'}</td>
@@ -133,6 +144,12 @@ export function BusinessClientsPage() {
                 </table>
               </div>
               {!visibleClients.length && <p>За вашим запитом нічого не знайдено</p>}
+              <PaginationBar
+                page={page}
+                pageSize={PAGE_SIZE}
+                total={visibleClients.length}
+                onPageChange={setPage}
+              />
             </>
           )}
         </section>

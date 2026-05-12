@@ -37,8 +37,17 @@ export const mastersController = {
 
   getAssignedRequests: asyncHandler(async (req, res) => {
     const profile = await mastersService.getProfileByUserId(req.user.id);
-    const requests = await mastersService.listAssignedRequests(profile.id);
-    res.json(requests);
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const offset = req.query.offset ? Number(req.query.offset) : undefined;
+    const rawStatus = req.query.status;
+    const status =
+      rawStatus != null &&
+      String(rawStatus).trim() !== '' &&
+      String(rawStatus).trim() !== 'all'
+        ? String(rawStatus).trim()
+        : undefined;
+    const result = await mastersService.listAssignedRequests(profile.id, { limit, offset, status });
+    res.json(result);
   }),
 
   updateRequestStatus: asyncHandler(async (req, res) => {

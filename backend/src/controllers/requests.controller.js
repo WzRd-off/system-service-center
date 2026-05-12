@@ -37,7 +37,17 @@ export const requestsController = {
   }),
 
   list: asyncHandler(async (req, res) => {
-    const { status, technicianId, limit, offset, dateFrom, dateTo, client, clientUserId } = req.query;
+    const {
+      status,
+      statusIn: statusInRaw,
+      technicianId,
+      limit,
+      offset,
+      dateFrom,
+      dateTo,
+      client,
+      clientUserId
+    } = req.query;
     const isManager = isManagerRole(req.user?.role);
 
     let userIdFilter = isManager ? undefined : req.user.id;
@@ -48,8 +58,16 @@ export const requestsController = {
       }
     }
 
-    const requests = await requestsService.list({
+    const statusIn = statusInRaw
+      ? String(statusInRaw)
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : undefined;
+
+    const result = await requestsService.list({
       status,
+      statusIn,
       technicianId: technicianId && Number(technicianId),
       userId: userIdFilter,
       dateFrom,
@@ -58,7 +76,7 @@ export const requestsController = {
       limit: limit ? Number(limit) : undefined,
       offset: offset ? Number(offset) : undefined
     });
-    res.json(requests);
+    res.json(result);
   }),
 
   getById: asyncHandler(async (req, res) => {

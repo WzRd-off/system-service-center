@@ -7,6 +7,7 @@ import { Button } from '../../components/common/Button.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
 import { businessClientsApi } from '../../api/businessClients.api.js';
 import { usersApi } from '../../api/users.api.js';
+import { isEmail, isPhone } from '../../utils/validators.js';
 
 const FIELDS = [
   { name: 'company_name', label: 'Назва компанії', required: true },
@@ -20,9 +21,9 @@ const FIELDS = [
 export function CompanyProfilePage() {
   const { data, loading, error, reload } = useFetch(() => businessClientsApi.getProfile());
   const [form, setForm] = useState({});
-  const [editing, setEditing] = useState(false);
+  const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [savedAt, setSavedAt] = useState(null);
+  const [profileMessage, setProfileMessage] = useState(null);
 
   useEffect(() => {
     if (data) setForm(data);
@@ -32,11 +33,26 @@ export function CompanyProfilePage() {
   if (error) return <Layout><ErrorMessage error={error} /></Layout>;
   if (!data) return <Layout><p>Профіль не знайдено</p></Layout>;
 
-  const change = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const change = (e) => {
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setErrors((er) => ({ ...er, [e.target.name]: undefined }));
+    setProfileMessage(null);
+  };
+
+  const validate = () => {
+    const er = {};
+    if (!form.company_name?.trim()) er.company_name = 'Вкажіть назву компанії';
+    if (form.email && !isEmail(form.email)) er.email = 'Некоректний email';
+    if (form.phone && !isPhone(form.phone)) er.phone = 'Некоректний телефон';
+    setErrors(er);
+    return Object.keys(er).length === 0;
+  };
 
   const save = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     setSaving(true);
+    setProfileMessage(null);
     try {
       await businessClientsApi.updateProfile({
         company_name: form.company_name,
@@ -48,51 +64,22 @@ export function CompanyProfilePage() {
         phone: form.phone,
         email: form.email,
       });
-      setSavedAt(Date.now());
-      setEditing(false);
+      setProfileMessage({ type: 'success', text: 'Дані збережено' });
       reload();
+    } catch (err) {
+      setProfileMessage({ type: 'error', text: err?.message || 'Помилка збереження' });
     } finally {
       setSaving(false);
     }
   };
 
-  const cancel = () => {
-    setForm(data);
-    setEditing(false);
-  };
-
   return (
     <Layout>
-      <div className="canvas-stack">
-      {!editing ? (
-        <section className="company-profile canvas-card">
-          <div className="company-profile__header canvas-header">
-            <div>
-              <h2 className="company-profile__title">Профіль компанії</h2>
-              {savedAt && <small className="hint">Збережено</small>}
-            </div>
-            <Button onClick={() => setEditing(true)}>Редагувати</Button>
-          </div>
+      <h2>Профіль компанії</h2>
 
-          <dl className="company-profile__dl">
-            {FIELDS.map((f) => (
-              <div className="company-profile__row" key={f.name}>
-                <dt>{f.label}</dt>
-                <dd>{data[f.name] || '—'}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      ) : (
-        <section className="company-profile canvas-card">
-          <div className="company-profile__header canvas-header">
-            <div>
-              <h2 className="company-profile__title">Профіль компанії</h2>
-              <small className="hint">Редагування</small>
-            </div>
-          </div>
-
-          <form onSubmit={save} className="profile-form">
+      <section>
+        <h3>Реквізити компанії</h3>
+        <form onSubmit={save} className="profile-form">
           {FIELDS.map((f) => (
             <Input
               key={f.name}
@@ -102,16 +89,19 @@ export function CompanyProfilePage() {
               required={f.required}
               value={form[f.name] || ''}
               onChange={change}
+              error={errors[f.name]}
             />
           ))}
           <div className="form-actions">
-            <Button type="submit" loading={saving}>Зберегти</Button>
-            <Button type="button" variant="ghost" onClick={cancel}>Скасувати</Button>
+            <Button type="submit" loading={saving}>Зберегти зміни</Button>
           </div>
-          </form>
-        </section>
-      )}
-      </div>
+          {profileMessage && (
+            <p className={profileMessage.type === 'error' ? 'error' : 'success'}>
+              {profileMessage.text}
+            </p>
+          )}
+        </form>
+      </section>
     </Layout>
   );
 }

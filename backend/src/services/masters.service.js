@@ -69,14 +69,35 @@ class MastersService {
     }
   }
 
-  async listAssignedRequests(technicianId) {
+  async listAssignedRequests(technicianId, { limit = 50, offset = 0, status } = {}) {
+    const conditions = ['assigned_technician_id = $1'];
+    const params = [technicianId];
+    if (status) {
+      params.push(status);
+      conditions.push(`status = $${params.length}`);
+    }
+    const where = `WHERE ${conditions.join(' AND ')}`;
+
+    const { rows: countRows } = await db.query(
+      `SELECT COUNT(*)::int AS c FROM service_requests ${where}`,
+      params
+    );
+    const total = countRows[0]?.c ?? 0;
+
+    const lim = Number(limit);
+    const off = Number(offset);
+    const safeLimit = Number.isFinite(lim) && lim > 0 ? lim : 50;
+    const safeOffset = Number.isFinite(off) && off >= 0 ? off : 0;
+    const dataParams = [...params, safeLimit, safeOffset];
+
     const { rows } = await db.query(
       `SELECT * FROM service_requests
-       WHERE assigned_technician_id = $1
-       ORDER BY created_at DESC`,
-      [technicianId]
+       ${where}
+       ORDER BY created_at DESC
+       LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}`,
+      dataParams
     );
-    return rows;
+    return { items: rows, total };
   }
 
   async addWorkReport({ requestId, technicianId, diagnosticResult, workDescription, usedParts }) {

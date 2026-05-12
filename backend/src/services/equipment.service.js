@@ -43,6 +43,25 @@ class EquipmentService {
     if (!rows[0]) throw ApiError.notFound('Device not found');
     return rows[0];
   }
+
+  async deleteById(id) {
+    const { rows: reqRows } = await db.query(
+      'SELECT COUNT(*)::int AS c FROM service_requests WHERE device_id = $1',
+      [id]
+    );
+    if (reqRows[0].c > 0) {
+      throw ApiError.conflict('Неможливо видалити техніку: є пов’язані заявки');
+    }
+    const { rows: mpRows } = await db.query(
+      'SELECT COUNT(*)::int AS c FROM maintenance_plans WHERE device_id = $1',
+      [id]
+    );
+    if (mpRows[0].c > 0) {
+      throw ApiError.conflict('Неможливо видалити техніку: є пов’язані плани обслуговування');
+    }
+    const { rowCount } = await db.query('DELETE FROM devices WHERE id = $1', [id]);
+    if (!rowCount) throw ApiError.notFound('Device not found');
+  }
 }
 
 export const equipmentService = new EquipmentService();

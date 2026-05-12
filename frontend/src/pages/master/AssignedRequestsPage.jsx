@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Layout } from '../../components/layout/Layout.jsx';
 import { RequestList } from '../../components/requests/RequestList.jsx';
 import { Spinner } from '../../components/common/Spinner.jsx';
 import { ErrorMessage } from '../../components/common/ErrorMessage.jsx';
+import { PaginationBar, PAGE_SIZE } from '../../components/common/PaginationBar.jsx';
 import { Select } from '../../components/common/Select.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
 import { mastersApi } from '../../api/masters.api.js';
@@ -13,14 +14,30 @@ const statusOptions = [
   ...Object.entries(STATUS_LABELS).map(([value, label]) => ({
     value,
     label,
-  }))
+  })),
 ];
 
 export function AssignedRequestsPage() {
-  const { data, loading, error } = useFetch(() => mastersApi.getAssignedRequests());
   const [filter, setFilter] = useState('all');
+  const [page, setPage] = useState(0);
 
-  const filteredData = data?.filter(r => filter === 'all' || r.status === filter) || [];
+  useEffect(() => {
+    setPage(0);
+  }, [filter]);
+
+  const params = {
+    limit: PAGE_SIZE,
+    offset: page * PAGE_SIZE,
+    ...(filter !== 'all' ? { status: filter } : {}),
+  };
+
+  const { data, loading, error } = useFetch(
+    () => mastersApi.getAssignedRequests(params),
+    [page, filter]
+  );
+
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
 
   return (
     <Layout>
@@ -44,7 +61,15 @@ export function AssignedRequestsPage() {
           ) : error ? (
             <ErrorMessage error={error} />
           ) : (
-            <RequestList requests={filteredData} basePath="/master/requests" />
+            <>
+              <RequestList requests={items} basePath="/master/requests" />
+              <PaginationBar
+                page={page}
+                pageSize={PAGE_SIZE}
+                total={total}
+                onPageChange={setPage}
+              />
+            </>
           )}
         </section>
       </div>

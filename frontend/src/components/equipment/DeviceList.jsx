@@ -1,6 +1,6 @@
 import { DeviceCard } from './DeviceCard.jsx';
 
-export function DeviceList({ devices, getHistoryPath }) {
+export function DeviceList({ devices, getHistoryPath, onDelete }) {
   const items = Array.isArray(devices) ? devices : [];
   if (!items.length) return <p>Техніки не додано</p>;
   return (
@@ -10,6 +10,7 @@ export function DeviceList({ devices, getHistoryPath }) {
           key={d.id}
           device={d}
           historyPath={getHistoryPath ? getHistoryPath(d.id) : undefined}
+          onDelete={onDelete}
         />
       ))}
     </div>

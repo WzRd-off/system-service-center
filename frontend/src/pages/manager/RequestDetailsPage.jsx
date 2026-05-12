@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Layout } from '../../components/layout/Layout.jsx';
 import { Spinner } from '../../components/common/Spinner.jsx';
@@ -15,6 +15,7 @@ import { mastersApi } from '../../api/masters.api.js';
 import { STATUS_LABELS } from '../../constants/statuses.js';
 import { SERVICE_TYPE_LABELS } from '../../constants/serviceTypes.js';
 import { formatDateTime } from '../../utils/formatters.js';
+import { PaginationBar, PAGE_SIZE } from '../../components/common/PaginationBar.jsx';
 
 const statusOptions = Object.entries(STATUS_LABELS).map(([value, label]) => ({
   value,
@@ -43,12 +44,27 @@ function buildEditState(r) {
 }
 
 function ClientOtherRequestsSection({ clientUserId, currentRequestId }) {
+  const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    setPage(0);
+  }, [clientUserId]);
+
   const { data, loading, error } = useFetch(
-    () => requestsApi.list({ clientUserId, limit: 25 }),
-    [clientUserId]
+    () =>
+      requestsApi.list({
+        clientUserId,
+        limit: PAGE_SIZE,
+        offset: page * PAGE_SIZE,
+      }),
+    [clientUserId, page]
   );
+
   if (!clientUserId) return null;
-  const rows = (data || []).filter((x) => String(x.id) !== String(currentRequestId));
+
+  const items = data?.items ?? [];
+  const total = data?.total ?? 0;
+
   return (
     <section className="canvas-card">
       <h3>Інші заявки клієнта</h3>
@@ -56,20 +72,34 @@ function ClientOtherRequestsSection({ clientUserId, currentRequestId }) {
         <Spinner />
       ) : error ? (
         <p>Не вдалося завантажити список</p>
-      ) : rows.length === 0 ? (
+      ) : total === 0 ? (
         <p>Інших заявок немає</p>
       ) : (
-        <ul className="analytics-list">
-          {rows.map((row) => (
-            <li key={row.id}>
-              <Link to={`/manager/requests/${row.id}`}>№ {row.request_number}</Link>
-              {' — '}
-              {STATUS_LABELS[row.status] || row.status}
-              {' — '}
-              {formatDateTime(row.created_at)}
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="analytics-list">
+            {items.map((row) => (
+              <li key={row.id}>
+                {String(row.id) === String(currentRequestId) ? (
+                  <span className="hint">№ {row.request_number} (поточна заявка)</span>
+                ) : (
+                  <>
+                    <Link to={`/manager/requests/${row.id}`}>№ {row.request_number}</Link>
+                    {' — '}
+                    {STATUS_LABELS[row.status] || row.status}
+                    {' — '}
+                    {formatDateTime(row.created_at)}
+                  </>
+                )}
+              </li>
+            ))}
+          </ul>
+          <PaginationBar
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={total}
+            onPageChange={setPage}
+          />
+        </>
       )}
     </section>
   );

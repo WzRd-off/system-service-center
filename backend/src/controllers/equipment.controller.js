@@ -54,5 +54,14 @@ export const equipmentController = {
     }
     const history = await equipmentService.getHistory(Number(req.params.id));
     res.json(history);
-  })
+  }),
+
+  remove: asyncHandler(async (req, res) => {
+    const device = await equipmentService.getById(Number(req.params.id));
+    if (!isManager(req.user.role) && Number(device.user_id) !== Number(req.user.id)) {
+      throw ApiError.forbidden('Немає доступу');
+    }
+    await equipmentService.deleteById(Number(req.params.id));
+    res.status(204).end();
+  }),
 };

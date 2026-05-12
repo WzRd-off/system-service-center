@@ -20,8 +20,10 @@ export const businessClientsController = {
   }),
 
   getRequests: asyncHandler(async (req, res) => {
-    const requests = await requestsService.list({ userId: req.user.id });
-    res.json(requests);
+    const limit = req.query.limit ? Number(req.query.limit) : undefined;
+    const offset = req.query.offset ? Number(req.query.offset) : undefined;
+    const result = await requestsService.list({ userId: req.user.id, limit, offset });
+    res.json(result);
   }),
 
   getMaintenancePlans: asyncHandler(async (req, res) => {

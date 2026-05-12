@@ -851,6 +851,17 @@
     padding: 0.75rem 1rem;
     border-top: 1px solid var(--color-border);
   }
+
+  .pagination-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    margin-top: 0.5rem;
+    border-top: 1px solid var(--color-border);
+  }
   
   /* ============================================================
      LANDING PAGE
@@ -2029,6 +2040,14 @@
   .data-table tbody tr:last-child td { border-bottom: none; }
   .data-table tbody tr { transition: background var(--transition-base); }
   .data-table tbody tr:hover { background: var(--color-hover); }
+
+  .data-table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: flex-end;
+  }
   
   .device-card {
     background: var(--color-surface);

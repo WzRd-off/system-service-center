@@ -146,7 +146,16 @@ class RequestsService {
     return r;
   }
 
-  async list({ limit = 50, offset = 0, status, technicianId, userId, dateFrom, dateTo, client } = {}) {
+  _listFromJoin() {
+    return `FROM service_requests sr
+       LEFT JOIN client_profiles cp ON cp.user_id = sr.user_id
+       LEFT JOIN users u_cp ON u_cp.id = cp.user_id
+       LEFT JOIN business_client_profiles bcp ON bcp.user_id = sr.user_id
+       LEFT JOIN users u_bc ON u_bc.id = bcp.user_id
+       LEFT JOIN technician_profiles tp ON tp.id = sr.assigned_technician_id`;
+  }
+
+  _buildListFilters({ status, statusIn, technicianId, userId, dateFrom, dateTo, client }) {
     const conditions = [];
     const params = [];
 
@@ -155,7 +164,12 @@ class RequestsService {
       conditions.push(`${cond} $${params.length}`);
     };
 
-    if (status) push('sr.status =', status);
+    if (status) {
+      push('sr.status =', status);
+    } else if (statusIn?.length) {
+      params.push(statusIn);
+      conditions.push(`sr.status = ANY($${params.length}::varchar[])`);
+    }
     if (technicianId) push('sr.assigned_technician_id =', technicianId);
     if (userId) push('sr.user_id =', userId);
     if (dateFrom) push('sr.created_at >=', dateFrom);
@@ -172,8 +186,44 @@ class RequestsService {
     }
 
     const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-    params.push(limit, offset);
+    return { where, params };
+  }
 
+  async list({
+    limit = 50,
+    offset = 0,
+    status,
+    statusIn,
+    technicianId,
+    userId,
+    dateFrom,
+    dateTo,
+    client
+  } = {}) {
+    const { where, params: filterParams } = this._buildListFilters({
+      status,
+      statusIn,
+      technicianId,
+      userId,
+      dateFrom,
+      dateTo,
+      client
+    });
+
+    const fromJoin = this._listFromJoin();
+
+    const { rows: countRows } = await db.query(
+      `SELECT COUNT(*)::int AS c ${fromJoin} ${where}`,
+      filterParams
+    );
+    const total = countRows[0]?.c ?? 0;
+
+    const lim = Number(limit);
+    const off = Number(offset);
+    const safeLimit = Number.isFinite(lim) && lim > 0 ? lim : 50;
+    const safeOffset = Number.isFinite(off) && off >= 0 ? off : 0;
+
+    const dataParams = [...filterParams, safeLimit, safeOffset];
     const { rows } = await db.query(
       `SELECT sr.*,
               TRIM(CONCAT_WS(' ', cp.first_name, cp.last_name)) AS client_name,
@@ -183,18 +233,13 @@ class RequestsService {
               COALESCE(u_cp.email, u_bc.email) AS contact_email,
               sr.service_address AS address,
               TRIM(CONCAT_WS(' ', tp.first_name, tp.last_name)) AS technician_name
-       FROM service_requests sr
-       LEFT JOIN client_profiles cp ON cp.user_id = sr.user_id
-       LEFT JOIN users u_cp ON u_cp.id = cp.user_id
-       LEFT JOIN business_client_profiles bcp ON bcp.user_id = sr.user_id
-       LEFT JOIN users u_bc ON u_bc.id = bcp.user_id
-       LEFT JOIN technician_profiles tp ON tp.id = sr.assigned_technician_id
+       ${fromJoin}
        ${where}
        ORDER BY sr.created_at DESC
-       LIMIT $${params.length - 1} OFFSET $${params.length}`,
-      params
+       LIMIT $${dataParams.length - 1} OFFSET $${dataParams.length}`,
+      dataParams
     );
-    return rows;
+    return { items: rows, total };
   }
 
   async updateStatus(id, status, { changedByUserId } = {}) {

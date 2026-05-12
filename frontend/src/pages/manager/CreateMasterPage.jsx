@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Layout } from '../../components/layout/Layout.jsx';
 import { Input } from '../../components/common/Input.jsx';
 import { Select } from '../../components/common/Select.jsx';
 import { Button } from '../../components/common/Button.jsx';
 import { Spinner } from '../../components/common/Spinner.jsx';
 import { ErrorMessage } from '../../components/common/ErrorMessage.jsx';
+import { PaginationBar, PAGE_SIZE } from '../../components/common/PaginationBar.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
 import { mastersApi } from '../../api/masters.api.js';
 
@@ -29,6 +30,7 @@ export function CreateMasterPage() {
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState('last_name');
   const [sortDirection, setSortDirection] = useState('asc');
+  const [page, setPage] = useState(0);
 
   const change = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
 
@@ -109,6 +111,15 @@ export function CreateMasterPage() {
       return sortDirection === 'asc' ? cmp : -cmp;
     });
   }, [masters.data, search, sortField, sortDirection]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [search, sortField, sortDirection]);
+
+  const pagedMasters = useMemo(() => {
+    const start = page * PAGE_SIZE;
+    return visibleMasters.slice(start, start + PAGE_SIZE);
+  }, [visibleMasters, page]);
 
   return (
     <Layout>
@@ -205,7 +216,7 @@ export function CreateMasterPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {visibleMasters.map((m) => (
+                    {pagedMasters.map((m) => (
                       <tr key={m.id}>
                         <td>{m.last_name || '—'}</td>
                         <td>{m.first_name || '—'}</td>
@@ -228,6 +239,12 @@ export function CreateMasterPage() {
                 </table>
               </div>
               {!visibleMasters.length && <p>За вашим запитом нічого не знайдено</p>}
+              <PaginationBar
+                page={page}
+                pageSize={PAGE_SIZE}
+                total={visibleMasters.length}
+                onPageChange={setPage}
+              />
             </>
           )}
         </section>
