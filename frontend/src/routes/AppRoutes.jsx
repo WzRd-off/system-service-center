@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { ROUTES } from '../constants/routes.js';
 import { ROLES } from '../constants/roles.js';
 import { ProtectedRoute } from './ProtectedRoute.jsx';

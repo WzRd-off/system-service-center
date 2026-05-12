@@ -45,22 +45,22 @@ class EquipmentService {
   }
 
   async deleteById(id) {
-    const { rows: reqRows } = await db.query(
-      'SELECT COUNT(*)::int AS c FROM service_requests WHERE device_id = $1',
-      [id]
-    );
-    if (reqRows[0].c > 0) {
-      throw ApiError.conflict('Неможливо видалити техніку: є пов’язані заявки');
+    const client = await db.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('UPDATE service_requests SET device_id = NULL WHERE device_id = $1', [id]);
+      await client.query('UPDATE maintenance_plans SET device_id = NULL WHERE device_id = $1', [id]);
+      const { rowCount } = await client.query('DELETE FROM devices WHERE id = $1', [id]);
+      if (!rowCount) {
+        throw ApiError.notFound('Device not found');
+      }
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw err;
+    } finally {
+      client.release();
     }
-    const { rows: mpRows } = await db.query(
-      'SELECT COUNT(*)::int AS c FROM maintenance_plans WHERE device_id = $1',
-      [id]
-    );
-    if (mpRows[0].c > 0) {
-      throw ApiError.conflict('Неможливо видалити техніку: є пов’язані плани обслуговування');
-    }
-    const { rowCount } = await db.query('DELETE FROM devices WHERE id = $1', [id]);
-    if (!rowCount) throw ApiError.notFound('Device not found');
   }
 }
 
