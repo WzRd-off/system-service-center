@@ -7,14 +7,23 @@ import { Button } from '../../components/common/Button.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
 import { businessClientsApi } from '../../api/businessClients.api.js';
 import { usersApi } from '../../api/users.api.js';
-import { isEmail, isPhone } from '../../utils/validators.js';
+import {
+  INPUT_LIMITS,
+  isEmail,
+  isPhone,
+  sanitizeAddress,
+  sanitizeDigits,
+  sanitizeEmail,
+  sanitizePersonName,
+  sanitizeSimpleText,
+} from '../../utils/validators.js';
 
 const FIELDS = [
-  { name: 'company_name', label: 'Назва компанії', required: true },
-  { name: 'edrpou', label: 'ЄДРПОУ' },
-  { name: 'contact_person', label: 'Контактна особа' },
-  { name: 'phone', label: 'Телефон', type: 'tel' },
-  { name: 'email', label: 'Email', type: 'email' },
+  { name: 'company_name', label: 'Назва компанії', required: true, maxLength: INPUT_LIMITS.companyName },
+  { name: 'edrpou', label: 'ЄДРПОУ', maxLength: INPUT_LIMITS.edrpou, inputMode: 'numeric', pattern: '[0-9]{1,20}' },
+  { name: 'contact_person', label: 'Контактна особа', maxLength: INPUT_LIMITS.personName },
+  { name: 'phone', label: 'Телефон', type: 'tel', maxLength: INPUT_LIMITS.phone, inputMode: 'numeric', pattern: '[0-9]{1,20}' },
+  { name: 'email', label: 'Email', type: 'email', maxLength: INPUT_LIMITS.email },
   { name: 'address', label: 'Адреса обслуговування' },
 ];
 
@@ -34,7 +43,15 @@ export function CompanyProfilePage() {
   if (!data) return <Layout><p>Профіль не знайдено</p></Layout>;
 
   const change = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    let nextValue = value;
+    if (name === 'company_name') nextValue = sanitizeSimpleText(value, INPUT_LIMITS.companyName);
+    if (name === 'edrpou') nextValue = sanitizeDigits(value, INPUT_LIMITS.edrpou);
+    if (name === 'contact_person') nextValue = sanitizePersonName(value);
+    if (name === 'phone') nextValue = sanitizeDigits(value);
+    if (name === 'email') nextValue = sanitizeEmail(value);
+    if (name === 'address') nextValue = sanitizeAddress(value);
+    setForm((f) => ({ ...f, [name]: nextValue }));
     setErrors((er) => ({ ...er, [e.target.name]: undefined }));
     setProfileMessage(null);
   };
@@ -90,6 +107,9 @@ export function CompanyProfilePage() {
               value={form[f.name] || ''}
               onChange={change}
               error={errors[f.name]}
+              maxLength={f.maxLength}
+              inputMode={f.inputMode}
+              pattern={f.pattern}
             />
           ))}
           <div className="form-actions">

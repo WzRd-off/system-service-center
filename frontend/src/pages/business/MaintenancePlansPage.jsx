@@ -8,6 +8,7 @@ import { Button } from '../../components/common/Button.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
 import { businessClientsApi } from '../../api/businessClients.api.js';
 import { formatDate } from '../../utils/formatters.js';
+import { sanitizeLongText } from '../../utils/validators.js';
 
 const TYPE_OPTIONS = [
   { value: 'planned', label: 'Планове' },
@@ -23,7 +24,10 @@ export function MaintenancePlansPage() {
   const [form, setForm] = useState(INITIAL);
   const [saving, setSaving] = useState(false);
 
-  const change = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const change = (e) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: name === 'notes' ? sanitizeLongText(value) : value }));
+  };
 
   const submit = async (e) => {
     e.preventDefault();

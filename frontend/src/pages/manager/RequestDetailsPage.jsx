@@ -16,6 +16,7 @@ import { STATUS_LABELS } from '../../constants/statuses.js';
 import { SERVICE_TYPE_LABELS } from '../../constants/serviceTypes.js';
 import { formatDateTime } from '../../utils/formatters.js';
 import { PaginationBar, PAGE_SIZE } from '../../components/common/PaginationBar.jsx';
+import { sanitizeAddress, sanitizeLongText } from '../../utils/validators.js';
 
 const statusOptions = Object.entries(STATUS_LABELS).map(([value, label]) => ({
   value,
@@ -202,7 +203,7 @@ function ManagerRequestDetailsBody({ r, id, onRequestReload }) {
             label="Опис проблеми"
             name="description"
             value={edit.description}
-            onChange={(e) => setEdit({ ...edit, description: e.target.value })}
+            onChange={(e) => setEdit({ ...edit, description: sanitizeLongText(e.target.value) })}
             required
           />
           <Select
@@ -223,14 +224,14 @@ function ManagerRequestDetailsBody({ r, id, onRequestReload }) {
             label="Адреса об'єкта / обслуговування"
             name="service_address"
             value={edit.service_address}
-            onChange={(e) => setEdit({ ...edit, service_address: e.target.value })}
+            onChange={(e) => setEdit({ ...edit, service_address: sanitizeAddress(e.target.value) })}
           />
           <Input
             type="textarea"
             label="Коментар клієнта"
             name="client_comment"
             value={edit.client_comment}
-            onChange={(e) => setEdit({ ...edit, client_comment: e.target.value })}
+            onChange={(e) => setEdit({ ...edit, client_comment: sanitizeLongText(e.target.value) })}
           />
           <Button type="submit" loading={savingEdit}>Зберегти зміни</Button>
         </form>

@@ -8,7 +8,18 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { usersApi } from '../api/users.api.js';
 import { authApi } from '../api/auth.api.js';
 import { ROLES } from '../constants/roles.js';
-import { isEmail, isPhone, isStrongPassword } from '../utils/validators.js';
+import {
+  INPUT_LIMITS,
+  isEmail,
+  isPhone,
+  isStrongPassword,
+  sanitizeAddress,
+  sanitizeDigits,
+  sanitizeEmail,
+  sanitizePassword,
+  sanitizePersonName,
+  sanitizeSimpleText,
+} from '../utils/validators.js';
 
 const BASE_PROFILE_FIELDS = [
   { name: 'first_name', label: "Ім'я" },
@@ -16,6 +27,15 @@ const BASE_PROFILE_FIELDS = [
   { name: 'email', label: 'Email', type: 'email' },
   { name: 'phone', label: 'Телефон', type: 'tel' },
 ];
+
+const FIELD_PROPS = {
+  first_name: { maxLength: INPUT_LIMITS.personName },
+  last_name: { maxLength: INPUT_LIMITS.personName },
+  email: { maxLength: INPUT_LIMITS.email },
+  phone: { maxLength: INPUT_LIMITS.phone, inputMode: 'numeric', pattern: '[0-9]{1,20}' },
+  specialty: { maxLength: INPUT_LIMITS.specialty },
+  company_name: { maxLength: INPUT_LIMITS.companyName },
+};
 
 export function ProfilePage() {
   const { user } = useAuth();
@@ -40,7 +60,15 @@ export function ProfilePage() {
   const isBusinessClient = user?.role === ROLES.BUSINESS_CLIENT;
 
   const change = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    let nextValue = value;
+    if (name === 'first_name' || name === 'last_name') nextValue = sanitizePersonName(value);
+    if (name === 'email') nextValue = sanitizeEmail(value);
+    if (name === 'phone') nextValue = sanitizeDigits(value);
+    if (name === 'address') nextValue = sanitizeAddress(value);
+    if (name === 'specialty') nextValue = sanitizeSimpleText(value);
+    if (name === 'company_name') nextValue = sanitizeSimpleText(value, INPUT_LIMITS.companyName);
+    setForm((f) => ({ ...f, [name]: nextValue }));
     setErrors((er) => ({ ...er, [e.target.name]: undefined }));
     setProfileMessage(null);
   };
@@ -71,7 +99,7 @@ export function ProfilePage() {
   };
 
   const changePwd = (e) => {
-    setPwd((p) => ({ ...p, [e.target.name]: e.target.value }));
+    setPwd((p) => ({ ...p, [e.target.name]: sanitizePassword(e.target.value) }));
     setPwdErrors((er) => ({ ...er, [e.target.name]: undefined }));
     setPwdMessage(null);
   };
@@ -147,6 +175,7 @@ export function ProfilePage() {
               value={form[f.name] || ''}
               onChange={change}
               error={errors[f.name]}
+              {...(FIELD_PROPS[f.name] || {})}
             />
           ))}
           <div className="form-actions">
@@ -174,6 +203,7 @@ export function ProfilePage() {
             error={pwdErrors.currentPassword}
             autoComplete="current-password"
             required
+            maxLength={INPUT_LIMITS.password}
           />
           <Input
             label="Новий пароль"
@@ -185,6 +215,7 @@ export function ProfilePage() {
             hint="Мінімум 6 символів"
             autoComplete="new-password"
             required
+            maxLength={INPUT_LIMITS.password}
           />
           <Input
             label="Підтвердження пароля"
@@ -195,6 +226,7 @@ export function ProfilePage() {
             error={pwdErrors.confirmPassword}
             autoComplete="new-password"
             required
+            maxLength={INPUT_LIMITS.password}
           />
           <div className="form-actions">
             <Button type="submit" loading={savingPwd}>Змінити пароль</Button>

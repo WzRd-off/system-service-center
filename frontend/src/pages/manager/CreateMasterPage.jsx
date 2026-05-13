@@ -8,6 +8,14 @@ import { ErrorMessage } from '../../components/common/ErrorMessage.jsx';
 import { PaginationBar, PAGE_SIZE } from '../../components/common/PaginationBar.jsx';
 import { useFetch } from '../../hooks/useFetch.js';
 import { mastersApi } from '../../api/masters.api.js';
+import {
+  INPUT_LIMITS,
+  sanitizeDigits,
+  sanitizeEmail,
+  sanitizePassword,
+  sanitizePersonName,
+  sanitizeSimpleText,
+} from '../../utils/validators.js';
 
 const INITIAL = {
   email: '',
@@ -32,7 +40,16 @@ export function CreateMasterPage() {
   const [sortDirection, setSortDirection] = useState('asc');
   const [page, setPage] = useState(0);
 
-  const change = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const change = (e) => {
+    const { name, value } = e.target;
+    let nextValue = value;
+    if (name === 'email') nextValue = sanitizeEmail(value);
+    if (name === 'phone') nextValue = sanitizeDigits(value);
+    if (name === 'password') nextValue = sanitizePassword(value);
+    if (name === 'firstName' || name === 'lastName') nextValue = sanitizePersonName(value);
+    if (name === 'specialty') nextValue = sanitizeSimpleText(value, INPUT_LIMITS.specialty);
+    setForm((f) => ({ ...f, [name]: nextValue }));
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -146,12 +163,12 @@ export function CreateMasterPage() {
         <section className="canvas-card">
           <h3>Реєстрація нового майстра</h3>
           <form onSubmit={submit} className="section-stack">
-            <Input label="Пошта" name="email" type="email" value={form.email} onChange={change} required />
-            <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required />
-            <Input label="Телефон" name="phone" type="tel" value={form.phone} onChange={change} />
-            <Input label="Імʼя" name="firstName" value={form.firstName} onChange={change} />
-            <Input label="Прізвище" name="lastName" value={form.lastName} onChange={change} />
-            <Input label="Спеціалізація" name="specialty" value={form.specialty} onChange={change} />
+            <Input label="Пошта" name="email" type="email" value={form.email} onChange={change} required maxLength={INPUT_LIMITS.email} />
+            <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required minLength={6} maxLength={INPUT_LIMITS.password} />
+            <Input label="Телефон" name="phone" type="tel" value={form.phone} onChange={change} maxLength={INPUT_LIMITS.phone} inputMode="numeric" pattern="[0-9]{1,20}" />
+            <Input label="Імʼя" name="firstName" value={form.firstName} onChange={change} maxLength={INPUT_LIMITS.personName} />
+            <Input label="Прізвище" name="lastName" value={form.lastName} onChange={change} maxLength={INPUT_LIMITS.personName} />
+            <Input label="Спеціалізація" name="specialty" value={form.specialty} onChange={change} maxLength={INPUT_LIMITS.specialty} />
 
             {formError && <p className="error">{formError}</p>}
             {formSuccess && <p className="success">{formSuccess}</p>}
@@ -179,7 +196,8 @@ export function CreateMasterPage() {
                   label="Пошук"
                   placeholder="Прізвище, email, спеціалізація..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => setSearch(sanitizeSimpleText(e.target.value, INPUT_LIMITS.shortText))}
+                  maxLength={INPUT_LIMITS.shortText}
                 />
                 <Select
                   label="Сортувати за"

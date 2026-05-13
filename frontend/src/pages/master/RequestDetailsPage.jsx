@@ -14,6 +14,7 @@ import { mastersApi } from '../../api/masters.api.js';
 import { commentsApi } from '../../api/comments.api.js';
 import { STATUS_LABELS } from '../../constants/statuses.js';
 import { formatDateTime } from '../../utils/formatters.js';
+import { sanitizeLongText } from '../../utils/validators.js';
 
 const statusOptions = Object.entries(STATUS_LABELS).map(([value, label]) => ({
   value,
@@ -115,17 +116,17 @@ export function MasterRequestDetailsPage() {
           <Input
             label="Діагностика"
             value={report.diagnosticResult}
-            onChange={(e) => setReport({ ...report, diagnosticResult: e.target.value })}
+            onChange={(e) => setReport({ ...report, diagnosticResult: sanitizeLongText(e.target.value) })}
           />
           <Input
             label="Виконані роботи"
             value={report.workDescription}
-            onChange={(e) => setReport({ ...report, workDescription: e.target.value })}
+            onChange={(e) => setReport({ ...report, workDescription: sanitizeLongText(e.target.value) })}
           />
           <Input
             label="Запчастини"
             value={report.usedParts}
-            onChange={(e) => setReport({ ...report, usedParts: e.target.value })}
+            onChange={(e) => setReport({ ...report, usedParts: sanitizeLongText(e.target.value) })}
           />
           <div className="form-actions">
             <Button type="submit">Зберегти звіт</Button>

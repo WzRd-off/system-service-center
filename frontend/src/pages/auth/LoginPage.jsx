@@ -5,6 +5,7 @@ import { Input } from '../../components/common/Input.jsx';
 import { Button } from '../../components/common/Button.jsx';
 import { ROUTES } from '../../constants/routes.js';
 import { ROLES } from '../../constants/roles.js';
+import { INPUT_LIMITS, sanitizeEmail, sanitizePassword } from '../../utils/validators.js';
 
 const ROLE_HOME = {
   [ROLES.CLIENT]: ROUTES.CLIENT.DASHBOARD,
@@ -19,7 +20,13 @@ export function LoginPage() {
   const [form, setForm] = useState({ login: '', password: '' });
   const [error, setError] = useState(null);
 
-  const change = (e) => setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+  const change = (e) => {
+    const { name, value } = e.target;
+    let nextValue = value;
+    if (name === 'login') nextValue = sanitizeEmail(value);
+    if (name === 'password') nextValue = sanitizePassword(value);
+    setForm((f) => ({ ...f, [name]: nextValue }));
+  };
   const submit = async (e) => {
     e.preventDefault();
     try {
@@ -35,8 +42,8 @@ export function LoginPage() {
       <div className="canvas-card canvas-card--auth auth-page">
         <h2>Вхід</h2>
         <form onSubmit={submit}>
-          <Input label="Пошта або телефон" name="login" type="text" value={form.login} onChange={change} required autoComplete="username" />
-          <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required />
+          <Input label="Пошта або телефон" name="login" type="text" value={form.login} onChange={change} required autoComplete="username" maxLength={INPUT_LIMITS.email} />
+          <Input label="Пароль" name="password" type="password" value={form.password} onChange={change} required maxLength={INPUT_LIMITS.password} />
           {error && <p className="error">{error}</p>}
           <Button type="submit">Увійти</Button>
         </form>
